@@ -8,6 +8,9 @@ import Dashboard from './pages/Dashboard';
 import BookingsPage from './pages/BookingsPage';
 import BookingCreatePage from './pages/BookingCreatePage';
 import BookingEditPage from './pages/BookingEditPage';
+import StationsPage from './pages/StationsPage';
+import StationCreatePage from './pages/StationCreatePage';
+import StationEditPage from './pages/StationEditPage';
 import LoginPage from './pages/LoginPage';
 import NotFound from './pages/NotFound';
 import { useAuth } from './hooks/useAuth';
@@ -89,6 +92,31 @@ const AppRouter = () => {
               <ProtectedRoute>
                 <Layout>
                   <BookingEditPage />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            {/* Stations Routes */}
+            <Route path="/stations" element={
+              <ProtectedRoute>
+                <Layout>
+                  <StationsPage />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/stations/create" element={
+              <ProtectedRoute>
+                <Layout>
+                  <StationCreatePage />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/stations/edit/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <StationEditPage />
                 </Layout>
               </ProtectedRoute>
             } />
