@@ -1,5 +1,5 @@
 import React from 'react';
-import StationDropdown from '../components/stations/StationDropdown';
+import StationDropdown from '../../components/stations/StationDropdown';
 
 const StationCreatePage = () => {
   return (

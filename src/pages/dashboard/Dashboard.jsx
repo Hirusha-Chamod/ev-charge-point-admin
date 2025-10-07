@@ -10,7 +10,7 @@ import {
   Users,
   Activity
 } from 'lucide-react';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const Dashboard = () => {
   const stats = {

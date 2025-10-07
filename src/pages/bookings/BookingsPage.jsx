@@ -11,8 +11,8 @@ import {
   MapPin,
   MoreHorizontal
 } from 'lucide-react';
-import BookingList from '../components/bookings/BookingList';
-import BookingCard from '../components/bookings/BookingCard';
+import BookingList from '../../components/bookings/BookingList';
+import BookingCard from '../../components/bookings/BookingCard';
 
 const BookingsPage = () => {
   const [viewMode, setViewMode] = useState('table');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import BookingForm from '../components/bookings/BookingForm';
+import BookingForm from '../../components/bookings/BookingForm';
 
 const BookingEditPage = () => {
   const mockBooking = {
