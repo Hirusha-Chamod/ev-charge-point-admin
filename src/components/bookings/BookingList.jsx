@@ -268,26 +268,32 @@ const BookingList = ({ filteredBookings }) => {
           </div>
 
           {/* Pagination */}
-          {!loading && !error && bookings.length > itemsPerPage && (
+          {!loading && !error && (
             <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
               <div className="flex items-center gap-2">
                 <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
-                  <span className="font-medium">{Math.min(currentPage * itemsPerPage, bookings.length)}</span> of{' '}
-                  <span className="font-medium">{bookings.length}</span> results
+                  {bookings.length > 0 ? (
+                    <>
+                      Showing <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
+                      <span className="font-medium">{Math.min(currentPage * itemsPerPage, bookings.length)}</span> of{' '}
+                      <span className="font-medium">{bookings.length}</span> results
+                    </>
+                  ) : (
+                    <span className="font-medium">No results to display</span>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 1 || totalPages <= 1}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
                   title="Previous page"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  {Array.from({ length: Math.min(Math.max(totalPages, 1), 7) }, (_, i) => {
                     let pageNum;
                     if (totalPages <= 7) {
                       pageNum = i + 1;
@@ -316,7 +322,7 @@ const BookingList = ({ filteredBookings }) => {
                 </div>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === totalPages || totalPages <= 1}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
                   title="Next page"
                 >
