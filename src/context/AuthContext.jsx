@@ -16,13 +16,13 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [authError, setAuthError] = useState("")
-  const [accessToken, setAccessToken] = useState(
-    localStorage.getItem("accessToken")
+  const [token, setAccessToken] = useState(
+    localStorage.getItem("token")
   );
   const [refreshToken, setRefreshToken] = useState(
     localStorage.getItem("refreshToken")
   );
-  const [isAuthenticated, setIsAuthenticated] = useState(!!accessToken);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
   const [loading, setLoading] = useState(true);
 
   // === 1️⃣ Decode JWT to get user info ===
@@ -44,8 +44,8 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post(`${API_BASE}/auth/refresh`, {
         refreshToken,
       });
-      const newAccessToken = res.data.accessToken;
-      localStorage.setItem("accessToken", newAccessToken);
+      const newAccessToken = res.data.token;
+      localStorage.setItem("token", newAccessToken);
       setAccessToken(newAccessToken);
 
       const decoded = decodeJwt(newAccessToken);
@@ -61,8 +61,8 @@ export const AuthProvider = ({ children }) => {
   // === 3️⃣ Automatically check token validity on load ===
   useEffect(() => {
     const initAuth = async () => {
-      if (accessToken) {
-        const decoded = decodeJwt(accessToken);
+      if (token) {
+        const decoded = decodeJwt(token);
         const now = Date.now() / 1000;
 
         if (decoded?.exp && decoded.exp < now) {
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     initAuth();
-  }, [accessToken, refreshAccessToken]);
+  }, [token, refreshAccessToken]);
 
   // === 4️⃣ Handle login ===
   const login = async (email, password) => {
@@ -87,15 +87,15 @@ export const AuthProvider = ({ children }) => {
         password,
       });
 
-      const { accessToken, refreshToken } = res.data;
+      const { token, refreshToken } = res.data;
 
-      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("token", token);
       localStorage.setItem("refreshToken", refreshToken);
 
-      setAccessToken(accessToken);
+      setAccessToken(token);
       setRefreshToken(refreshToken);
 
-      const decoded = decodeJwt(accessToken);
+      const decoded = decodeJwt(token);
       setUser(decoded);
       setIsAuthenticated(true);
 
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   // === 5️⃣ Handle logout ===
   const logout = useCallback(() => {
-    localStorage.removeItem("accessToken");
+    localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     setAccessToken(null);
     setRefreshToken(null);
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
-    accessToken,
+    token,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
