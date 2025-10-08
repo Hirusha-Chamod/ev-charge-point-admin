@@ -36,11 +36,25 @@ const ProtectedRoute = ({ children }) => {
 // Layout Component
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 min-h-screen">{children}</main>
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+      {/* Fixed Navbar */}
+      <div className="flex-shrink-0">
+        <Navbar />
+      </div>
+      
+      {/* Main layout with sidebar and content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Fixed Sidebar */}
+        <div className="flex-shrink-0">
+          <Sidebar />
+        </div>
+        
+        {/* Scrollable Main Content */}
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="h-full">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

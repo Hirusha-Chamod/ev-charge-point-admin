@@ -46,8 +46,9 @@ const StationCreatePage = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="mb-6">
+    <div className="h-full w-full">
+      <div className="p-6">
+        <div className="mb-6">
         <h1 className="text-2xl font-bold">Create Station</h1>
         <p className="text-sm text-gray-600">
           Add a new charging station to the network
@@ -139,6 +140,7 @@ const StationCreatePage = () => {
             </div>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

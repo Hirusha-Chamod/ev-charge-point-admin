@@ -43,7 +43,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="bg-white border-r border-gray-200 w-64 min-w-64 max-w-64 min-h-screen shadow-sm flex-shrink-0">
+    <aside className="bg-white border-r border-gray-200 w-64 min-w-64 max-w-64 h-full shadow-sm flex-shrink-0 flex flex-col">
       {/* Logo/Brand Section */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">
@@ -58,7 +58,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="p-4">
+      <nav className="p-4 flex-1 overflow-y-auto">
         <ul className="space-y-1">
           {menuItems.map((item) => {
             if (item.available) {

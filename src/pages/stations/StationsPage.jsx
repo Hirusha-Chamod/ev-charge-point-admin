@@ -29,8 +29,9 @@ const StationsPage = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center justify-between mb-6">
+    <div className="h-full w-full">
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">
             Stations Management
@@ -156,6 +157,7 @@ const StationsPage = () => {
           </table>
         </div>
       )}
+      </div>
     </div>
   );
 };

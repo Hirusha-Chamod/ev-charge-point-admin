@@ -2,8 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { Edit2, Trash2, Copy, Eye, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useBookingContext } from '../../context/BookingContext';
 
-const BookingList = () => {
-  const { bookings, loading, error } = useBookingContext();
+const BookingList = ({ filteredBookings }) => {
+  const { bookings: allBookings, loading, error } = useBookingContext();
+  
+  // Use filtered bookings if provided, otherwise use all bookings
+  const bookings = filteredBookings || allBookings;
 
   const [copiedId, setCopiedId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,7 +60,10 @@ const BookingList = () => {
         </div>
         <div className="flex items-center space-x-4">
           <div className="text-sm font-medium text-gray-600">
-            <span className="text-gray-900">{bookings.length}</span> Total Bookings
+            <span className="text-gray-900">{bookings.length}</span> 
+            {filteredBookings && filteredBookings.length !== allBookings.length 
+              ? ` of ${allBookings.length} bookings` 
+              : ' Total Bookings'}
           </div>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-all">
             Export Data

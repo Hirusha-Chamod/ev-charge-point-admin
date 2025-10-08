@@ -4,8 +4,9 @@ import BookingForm from '../../components/bookings/BookingForm';
 
 const BookingCreatePage = () => {
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="mb-6">
+    <div className="h-full w-full">
+      <div className="p-6 max-w-2xl mx-auto">
+        <div className="mb-6">
         <div className="flex items-center space-x-4 mb-4">
           <Link to="/bookings" className="text-blue-600 hover:text-blue-800 text-decoration-none">
             ← Back to Bookings
@@ -28,6 +29,7 @@ const BookingCreatePage = () => {
           <li>• Bookings can be made up to 30 days in advance</li>
           <li>• Cancellations are free up to 2 hours before start time</li>
         </ul>
+      </div>
       </div>
     </div>
   );
