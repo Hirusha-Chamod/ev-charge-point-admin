@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Edit2, Trash2, Copy, Eye, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useBookingContext } from '../../context/BookingContext';
+import BookingDetailsModal from './BookingDetailsModal';
 
 const BookingList = ({ filteredBookings }) => {
   const { bookings: allBookings, loading, error } = useBookingContext();
@@ -10,6 +11,8 @@ const BookingList = ({ filteredBookings }) => {
 
   const [copiedId, setCopiedId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const itemsPerPage = 10;
 
   const displayedBookings = useMemo(() => {
@@ -30,7 +33,24 @@ const BookingList = ({ filteredBookings }) => {
   };
 
   const handleBookingAction = (action, bookingId) => {
-    console.log(`${action} booking:`, bookingId);
+    const booking = bookings.find(b => (b.id || b._id) === bookingId);
+    
+    switch (action) {
+      case 'view':
+        setSelectedBooking(booking);
+        setIsDetailsModalOpen(true);
+        break;
+      case 'edit':
+        console.log('Edit booking:', bookingId);
+        // TODO: Implement edit functionality
+        break;
+      case 'delete':
+        console.log('Delete booking:', bookingId);
+        // TODO: Implement delete functionality
+        break;
+      default:
+        console.log(`${action} booking:`, bookingId);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -333,6 +353,16 @@ const BookingList = ({ filteredBookings }) => {
           )}
         </>
       )}
+      
+      {/* Booking Details Modal */}
+      <BookingDetailsModal 
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedBooking(null);
+        }}
+        booking={selectedBooking}
+      />
     </div>
   );
 };
