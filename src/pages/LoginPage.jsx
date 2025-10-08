@@ -6,23 +6,19 @@ import { Zap, Mail, Lock, Info } from 'lucide-react';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, authError } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
-    const result = await login({ email, password });
+    const result = await login(email, password );
     
     if (result.success) {
       navigate('/dashboard');
-    } else {
-      setError(result.error);
     }
     
     setLoading(false);
@@ -104,10 +100,10 @@ const LoginPage = () => {
               </div>
             </div>
 
-            {error && (
+            {authError && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs flex items-center space-x-2">
                 <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>{error}</span>
+                <span>{authError}</span>
               </div>
             )}
 

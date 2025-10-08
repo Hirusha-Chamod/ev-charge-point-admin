@@ -10,7 +10,7 @@ import {
   Users,
   Activity
 } from 'lucide-react';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import {useAuth} from "../../hooks/useAuth"
 
 const Dashboard = () => {
   const stats = {
@@ -22,12 +22,15 @@ const Dashboard = () => {
     monthlyGrowth: '+12%'
   };
 
+  const { user } = useAuth();
+
+
   return (
     <div className="p-8 space-y-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Monitor your EV charging operations</p>
+          <p className="text-gray-600 mt-1">Welcome, You are logged in as <span className='italic font-bold'>{user?.role.replace(/([a-z])([A-Z])/g, '$1 $2')}</span> </p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="text-sm text-gray-500 flex items-center space-x-2">

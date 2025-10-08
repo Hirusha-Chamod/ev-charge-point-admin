@@ -15,6 +15,8 @@ import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./hooks/useAuth";
 import { StationProvider } from "./context/StationContext";
+import { UserProvider } from "./context/UserContext";
+import UserPage from "./pages/users/UserPage";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -48,109 +50,122 @@ const Layout = ({ children }) => {
 const AppRouter = () => {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <BookingProvider>
-          <StationProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<LoginPage />} />
+      <UserProvider>
+        <AuthProvider>
+          <BookingProvider>
+            <StationProvider>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/login" element={<LoginPage />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected Routes */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Dashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Dashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/bookings"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <BookingsPage />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/bookings"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <BookingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/bookings/create"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <BookingCreatePage />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/bookings/create"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <BookingCreatePage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/bookings/edit/:id"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <BookingEditPage />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/bookings/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <BookingEditPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Stations Routes */}
-              <Route
-                path="/stations"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <StationsPage />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+                {/* Stations Routes */}
+                <Route
+                  path="/stations"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <StationsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/stations/create"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <StationCreatePage />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/stations/create"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <StationCreatePage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/stations/edit/:id"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <StationEditPage />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/stations/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <StationEditPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </StationProvider>
-        </BookingProvider>
-      </AuthProvider>
+                 <Route
+                  path="/users"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <UserPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* 404 Route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </StationProvider>
+          </BookingProvider>
+        </AuthProvider>
+      </UserProvider>
     </BrowserRouter>
   );
 };

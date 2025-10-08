@@ -35,7 +35,7 @@ const Navbar = () => {
             <div className="flex items-center space-x-3 border-l border-gray-200 pl-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
-                  {user?.name || 'Admin User'}
+                  {user?.unique_name || 'Admin User'}
                 </p>
                 <p className="text-xs text-gray-500">
                   {user?.email || 'admin@example.com'}
@@ -43,7 +43,7 @@ const Navbar = () => {
               </div>
               <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+                  {user?.unique_name ? user.unique_name.charAt(0).toUpperCase() : 'A'}
                 </span>
               </div>
               <button 

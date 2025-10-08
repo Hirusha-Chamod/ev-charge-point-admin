@@ -2,23 +2,23 @@ import axiosInstance from './axiosConfig';
 
 export const userApi = {
   // Get all users
-  getAllUsers: () => axiosInstance.get('/users'),
+  getAllUsers: () => axiosInstance.get('/user'),
   
   // Get user by ID
-  getUserById: (id) => axiosInstance.get(`/users/${id}`),
+  getUserById: (id) => axiosInstance.get(`/user/${id}`),
   
   // Create new user
-  createUser: (userData) => axiosInstance.post('/users', userData),
+  createUser: (userData) => axiosInstance.post('/user', userData),
   
   // Update user
-  updateUser: (id, userData) => axiosInstance.put(`/users/${id}`, userData),
+  updateUser: (id, userData) => axiosInstance.put(`/user/${id}`, userData),
   
   // Delete user
-  deleteUser: (id) => axiosInstance.delete(`/users/${id}`),
+  deleteUser: (id) => axiosInstance.delete(`/user/${id}`),
   
   // Login
   login: (credentials) => axiosInstance.post('/auth/login', credentials),
   
   // Get current user profile
-  getProfile: () => axiosInstance.get('/users/profile'),
+  getProfile: () => axiosInstance.get('/user/profile'),
 };
