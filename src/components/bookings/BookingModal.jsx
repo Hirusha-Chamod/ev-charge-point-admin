@@ -1,112 +1,339 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { X, Calendar, MapPin, Clock, Zap } from 'lucide-react';
+import { stationApi } from '../../api/stationApi';
+import { bookingApi } from '../../api/bookingApi';
+import { useBookingContext } from '../../context/BookingContext';
 
-const BookingModal = ({ isOpen = true, onClose }) => {
-  if (!isOpen) return null;
+const BookingModal = ({ isOpen, onClose }) => {
+  const { fetchBookings } = useBookingContext();
+  const [formData, setFormData] = useState({
+    evOwnerNic: '',
+    stationId: '',
+    slotId: '',
+    reservationDateTime: ''
+  });
+  const [stations, setStations] = useState([]);
+  const [slots, setSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [stationsLoading, setStationsLoading] = useState(false);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const mockBooking = {
-    id: 1,
-    user: 'John Doe',
-    userEmail: 'john@example.com',
-    station: 'Station A - Downtown Location',
-    startTime: '2024-10-08 09:00',
-    endTime: '2024-10-08 10:00',
-    status: 'Active',
-    duration: '1 hour',
-    cost: '$15.00',
-    paymentMethod: 'Credit Card',
-    vehicleModel: 'Tesla Model 3'
+  // Fetch stations on component mount
+  useEffect(() => {
+    if (isOpen) {
+      fetchStations();
+    }
+  }, [isOpen]);
+
+  // Fetch slots when station is selected
+  useEffect(() => {
+    if (formData.stationId) {
+      fetchSlots(formData.stationId);
+    } else {
+      setSlots([]);
+    }
+  }, [formData.stationId]);
+
+  const fetchStations = async () => {
+    setStationsLoading(true);
+    try {
+      const response = await stationApi.getAllStations();
+      setStations(response.data || []);
+    } catch (err) {
+      console.error('Failed to fetch stations:', err);
+      setError('Failed to load stations');
+    } finally {
+      setStationsLoading(false);
+    }
   };
 
+  const fetchSlots = async (stationId) => {
+    setSlotsLoading(true);
+    try {
+      const response = await stationApi.getStationById(stationId);
+      const stationData = response.data;
+      
+      // Assuming the station has a slots array or numberOfSlots property
+      // Adjust this based on your actual API response structure
+      const numberOfSlots = stationData.numberOfSlots || stationData.slots?.length || 4;
+      const slotsArray = Array.from({ length: numberOfSlots }, (_, index) => ({
+        id: index + 1,
+        name: `Slot ${index + 1}`,
+        available: true // You might want to check availability from the API
+      }));
+      
+      setSlots(slotsArray);
+    } catch (err) {
+      console.error('Failed to fetch slots:', err);
+      setError('Failed to load slots for this station');
+      setSlots([]);
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear slot selection when station changes
+    if (name === 'stationId') {
+      setFormData(prev => ({
+        ...prev,
+        slotId: ''
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      // Validate form data
+      if (!formData.evOwnerNic || !formData.stationId || !formData.slotId || !formData.reservationDateTime) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      // Convert slotId to number
+      const bookingData = {
+        ...formData,
+        slotId: parseInt(formData.slotId)
+      };
+
+      await bookingApi.createBooking(bookingData);
+      
+      // Refresh bookings list
+      await fetchBookings();
+      
+      // Reset form and close modal
+      resetForm();
+      onClose();
+    } catch (err) {
+      console.error('Failed to create booking:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to create booking');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      evOwnerNic: '',
+      stationId: '',
+      slotId: '',
+      reservationDateTime: ''
+    });
+    setError('');
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  // Get current datetime for min attribute
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full m-4">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Booking Details</h2>
-            <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      {/* Backdrop with blur */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={handleClose}
+      />
+      
+      {/* Modal Container */}
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="relative bg-black px-8 pt-8 pb-6">
+          <div className="relative flex items-start justify-between">
+            <div className="flex items-center space-x-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">New Booking</h2>
+                <p className="text-gray-300 text-sm">Reserve your charging slot</p>
+              </div>
+            </div>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-800 rounded-xl transition-all duration-200 group"
             >
-              ✕
+              <X className="w-5 h-5 text-white group-hover:rotate-90 transition-transform duration-200" />
             </button>
           </div>
         </div>
-        
-        <div className="p-6 space-y-4">
-          <div>
-            <h3 className="font-medium text-gray-800 mb-2">Booking Information</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Booking ID:</span>
-                <span>#{mockBooking.id}</span>
+
+        {/* Form Content */}
+        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+            {error && (
+              <div className="bg-gray-100 border-l-4 border-black rounded-r-lg p-4 animate-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="ml-3 text-sm font-medium text-gray-800">{error}</p>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Status:</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  mockBooking.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {mockBooking.status}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="font-medium text-gray-800 mb-2">User Information</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Name:</span>
-                <span>{mockBooking.user}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Email:</span>
-                <span>{mockBooking.userEmail}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Vehicle:</span>
-                <span>{mockBooking.vehicleModel}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="font-medium text-gray-800 mb-2">Booking Details</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Station:</span>
-                <span>{mockBooking.station}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Start Time:</span>
-                <span>{mockBooking.startTime}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">End Time:</span>
-                <span>{mockBooking.endTime}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Duration:</span>
-                <span>{mockBooking.duration}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Cost:</span>
-                <span className="text-green-600 font-medium">{mockBooking.cost}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Payment:</span>
-                <span>{mockBooking.paymentMethod}</span>
+            )}
+
+            {/* EV Owner NIC */}
+            <div className="space-y-2">
+              <label htmlFor="evOwnerNic" className="block text-sm font-semibold text-gray-900">
+                EV Owner NIC <span className="text-black">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="evOwnerNic"
+                  name="evOwnerNic"
+                  value={formData.evOwnerNic}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 199012345V"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900 placeholder:text-gray-500"
+                  required
+                />
               </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="p-6 border-t border-gray-200 flex space-x-3">
-          <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
-            Edit Booking
-          </button>
-          <button className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
-            Cancel Booking
-          </button>
+
+            {/* Station Selection */}
+            <div className="space-y-2">
+              <label htmlFor="stationId" className="flex items-center text-sm font-semibold text-gray-900">
+                <MapPin className="w-4 h-4 mr-2 text-black" />
+                Charging Station <span className="text-black ml-1">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  id="stationId"
+                  name="stationId"
+                  value={formData.stationId}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  required
+                  disabled={stationsLoading}
+                >
+                  <option value="">
+                    {stationsLoading ? 'Loading stations...' : 'Select a station'}
+                  </option>
+                  {stations.map((station) => (
+                    <option key={station.id || station._id} value={station.id || station._id}>
+                      {station.name || station.stationName || `Station ${station.id || station._id}`}
+                      {station.location && ` - ${station.location}`}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-600">
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Slot Selection */}
+            <div className="space-y-2">
+              <label htmlFor="slotId" className="flex items-center text-sm font-semibold text-gray-900">
+                <Zap className="w-4 h-4 mr-2 text-black" />
+                Charging Slot <span className="text-black ml-1">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  id="slotId"
+                  name="slotId"
+                  value={formData.slotId}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  required
+                  disabled={!formData.stationId || slotsLoading}
+                >
+                  <option value="">
+                    {!formData.stationId 
+                      ? 'Select a station first' 
+                      : slotsLoading 
+                        ? 'Loading slots...' 
+                        : 'Select a slot'
+                    }
+                  </option>
+                  {slots.map((slot) => (
+                    <option key={slot.id} value={slot.id} disabled={!slot.available}>
+                      {slot.name} {!slot.available && '(Unavailable)'}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-600">
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Reservation Date Time */}
+            <div className="space-y-2">
+              <label htmlFor="reservationDateTime" className="flex items-center text-sm font-semibold text-gray-900">
+                <Clock className="w-4 h-4 mr-2 text-black" />
+                Reservation Date & Time <span className="text-black ml-1">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="datetime-local"
+                  id="reservationDateTime"
+                  name="reservationDateTime"
+                  value={formData.reservationDateTime}
+                  onChange={handleInputChange}
+                  min={getCurrentDateTime()}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-black text-white px-6 py-3.5 rounded-xl hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 text-sm font-semibold shadow-lg shadow-black/30 hover:shadow-xl hover:shadow-black/40 hover:-translate-y-0.5 disabled:shadow-none disabled:transform-none"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating...
+                  </span>
+                ) : (
+                  'Create Booking'
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={loading}
+                className="px-6 py-3.5 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-semibold"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
