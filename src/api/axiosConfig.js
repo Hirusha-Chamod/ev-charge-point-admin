@@ -28,11 +28,42 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("authToken");
-      window.location.href = "/login";
+    // Handle network errors
+    if (!error.response) {
+      console.error("Network error:", error.message);
+      return Promise.reject({
+        message: "Network error. Please check your connection.",
+        originalError: error,
+      });
     }
-    return Promise.reject(error);
+
+    // Handle 401 Unauthorized
+    if (error.response.status === 401) {
+      localStorage.removeItem("authToken");
+
+      // Avoid redirect loop - only redirect if not already on login page
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+    }
+
+    // Handle 403 Forbidden
+    if (error.response.status === 403) {
+      console.error("Access forbidden");
+    }
+
+    // Handle 500 Server Error
+    if (error.response.status >= 500) {
+      console.error("Server error:", error.response.data);
+    }
+
+    // Return a structured error object
+    return Promise.reject({
+      status: error.response.status,
+      message: error.response.data?.message || error.message,
+      data: error.response.data,
+      originalError: error,
+    });
   }
 );
 

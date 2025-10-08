@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useCallback } from "react";
 import { stationApi } from "../api/stationApi";
 
 export const StationContext = createContext();
@@ -8,7 +8,7 @@ export const StationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchStations = async () => {
+  const fetchStations = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -20,19 +20,16 @@ export const StationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchStations();
   }, []);
 
   const createStation = async (stationData) => {
     setLoading(true);
     setError(null);
     try {
-      await stationApi.createStation(stationData);
-      await fetchStations(); // Re-fetch to show the new station
-      return { success: true };
+      const response = await stationApi.createStation(stationData);
+      // Add the new station to the existing list instead of refetching
+      setStations((prev) => [...prev, response.data]);
+      return { success: true, data: response.data };
     } catch (err) {
       console.error("Failed to create station:", err);
       setError("Failed to create station.");
@@ -46,9 +43,14 @@ export const StationProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      await stationApi.updateStation(stationId, updateData);
-      await fetchStations(); // Re-fetch to show the updated data
-      return { success: true };
+      const response = await stationApi.updateStation(stationId, updateData);
+      // Update the specific station in the list
+      setStations((prev) =>
+        prev.map((station) =>
+          station.id === stationId ? { ...station, ...response.data } : station
+        )
+      );
+      return { success: true, data: response.data };
     } catch (err) {
       console.error("Failed to update station:", err);
       setError("Failed to update station.");
@@ -63,7 +65,12 @@ export const StationProvider = ({ children }) => {
     setError(null);
     try {
       await stationApi.deactivateStation(stationId);
-      await fetchStations(); // Re-fetch to update the station's status
+      // Update the station's status locally
+      setStations((prev) =>
+        prev.map((station) =>
+          station.id === stationId ? { ...station, isActive: false } : station
+        )
+      );
       return { success: true };
     } catch (err) {
       console.error("Failed to deactivate station:", err);

@@ -1,26 +1,23 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStationContext } from "../../hooks/useStationContext";
+import showToast from "../../utils/toastNotification";
 
 const StationCreatePage = () => {
   const navigate = useNavigate();
   const { createStation, loading } = useStationContext();
 
-  // State for each form field
   const [name, setName] = useState("");
-  const [type, setType] = useState("AC"); // Default to AC
+  const [type, setType] = useState("AC");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [numberOfSlots, setNumberOfSlots] = useState(1);
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
-    // Basic validation
     if (!name || !latitude || !longitude) {
-      setError("Please fill out all required fields.");
+      showToast("error", "Please fill out all required fields.");
       return;
     }
 
@@ -35,10 +32,10 @@ const StationCreatePage = () => {
     const result = await createStation(stationData);
 
     if (result.success) {
-      // On success, navigate back to the main stations list
+      showToast("success", "Station created successfully!");
       navigate("/stations");
     } else {
-      setError(result.error?.message || "An unknown error occurred.");
+      showToast("error", result.error?.message || "Failed to create station.");
     }
   };
 
@@ -53,14 +50,7 @@ const StationCreatePage = () => {
 
       <div className="bg-white shadow rounded-lg p-6 max-w-4xl mx-auto">
         <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-              {error}
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Station Name */}
             <div className="md:col-span-2">
               <label
                 htmlFor="name"
@@ -78,7 +68,6 @@ const StationCreatePage = () => {
               />
             </div>
 
-            {/* Latitude */}
             <div>
               <label
                 htmlFor="latitude"
@@ -97,7 +86,6 @@ const StationCreatePage = () => {
               />
             </div>
 
-            {/* Longitude */}
             <div>
               <label
                 htmlFor="longitude"
@@ -116,7 +104,6 @@ const StationCreatePage = () => {
               />
             </div>
 
-            {/* Station Type */}
             <div>
               <label
                 htmlFor="type"
@@ -135,7 +122,6 @@ const StationCreatePage = () => {
               </select>
             </div>
 
-            {/* Number of Slots */}
             <div>
               <label
                 htmlFor="slots"
@@ -153,7 +139,6 @@ const StationCreatePage = () => {
               />
             </div>
 
-            {/* Submit Button */}
             <div className="md:col-span-2 text-right">
               <button
                 type="submit"
