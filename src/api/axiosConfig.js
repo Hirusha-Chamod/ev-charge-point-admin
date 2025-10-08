@@ -26,7 +26,7 @@ const processQueue = (error, token = null) => {
 
 // Request interceptor
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -61,7 +61,7 @@ axiosInstance.interceptors.response.use(
 
         const { token: newAccessToken, refreshToken: newRefreshToken } = response.data;
 
-        localStorage.setItem("accessToken", newAccessToken);
+        localStorage.setItem("token", newAccessToken);
         localStorage.setItem("refreshToken", newRefreshToken);
 
         axiosInstance.defaults.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -70,7 +70,7 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem("accessToken");
+        localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
         window.location.href = "/login";
         return Promise.reject(refreshError);
@@ -90,7 +90,7 @@ axiosInstance.interceptors.response.use(
 
     if (error.response.status === 401) {
       showToast("error", "Unauthorized - please log in again");
-      localStorage.removeItem("accessToken");
+      localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
 
       if (!window.location.pathname.includes("/login")) {
