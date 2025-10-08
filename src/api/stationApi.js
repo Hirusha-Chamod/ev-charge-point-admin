@@ -1,21 +1,23 @@
-import axiosInstance from './axiosConfig';
+import axiosInstance from "./axiosConfig";
 
 export const stationApi = {
-  // Get all stations
-  getAllStations: () => axiosInstance.get('/stations'),
-  
-  // Get station by ID
+  // GET /api/stations
+  getAllStations: () => axiosInstance.get("/stations"),
+
+  // GET /api/stations/{id}
   getStationById: (id) => axiosInstance.get(`/stations/${id}`),
-  
-  // Create new station
-  createStation: (stationData) => axiosInstance.post('/stations', stationData),
-  
-  // Update station
-  updateStation: (id, stationData) => axiosInstance.put(`/stations/${id}`, stationData),
-  
-  // Delete station
-  deleteStation: (id) => axiosInstance.delete(`/stations/${id}`),
-  
-  // Get available stations
-  getAvailableStations: () => axiosInstance.get('/stations/available'),
+
+  // GET /api/stations/nearby
+  getNearbyStations: ({ latitude, longitude }) =>
+    axiosInstance.get("/stations/nearby", { params: { latitude, longitude } }),
+
+  // POST /api/stations
+  createStation: (stationData) => axiosInstance.post("/stations", stationData),
+
+  // PUT /api/stations/{id}
+  updateStation: (id, stationData) =>
+    axiosInstance.put(`/stations/${id}`, stationData),
+
+  // PATCH /api/stations/{id}/deactivate
+  deactivateStation: (id) => axiosInstance.patch(`/stations/${id}/deactivate`),
 };
