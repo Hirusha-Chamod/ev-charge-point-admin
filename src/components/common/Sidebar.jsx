@@ -40,17 +40,10 @@ const Sidebar = () => {
       active: location.pathname.startsWith('/users'),
       available: true
     },
-    { 
-      path: '/settings', 
-      name: 'Settings', 
-      icon: Settings,
-      active: false,
-      available: false
-    }
   ];
 
   return (
-    <aside className="bg-white border-r border-gray-200 w-64 min-h-screen shadow-sm">
+    <aside className="bg-white border-r border-gray-200 w-64 min-w-64 max-w-64 min-h-screen shadow-sm flex-shrink-0">
       {/* Logo/Brand Section */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">

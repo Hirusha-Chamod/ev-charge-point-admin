@@ -1,78 +1,326 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { Edit2, Trash2, Copy, Eye, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useBookingContext } from '../../context/BookingContext';
 
 const BookingList = () => {
-  const mockBookings = [
-    {
-      id: 1,
-      user: 'John Doe',
-      station: 'Station A',
-      startTime: '2024-10-08 09:00',
-      endTime: '2024-10-08 10:00',
-      status: 'Active'
-    },
-    {
-      id: 2,
-      user: 'Jane Smith',
-      station: 'Station B',
-      startTime: '2024-10-08 11:00',
-      endTime: '2024-10-08 12:30',
-      status: 'Completed'
-    },
-    {
-      id: 3,
-      user: 'Bob Wilson',
-      station: 'Station C',
-      startTime: '2024-10-08 14:00',
-      endTime: '2024-10-08 15:00',
-      status: 'Pending'
+  const { bookings, loading, error } = useBookingContext();
+
+  const [copiedId, setCopiedId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const displayedBookings = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return bookings.slice(startIndex, startIndex + itemsPerPage);
+  }, [bookings, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(bookings.length / itemsPerPage);
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(text);
+      setTimeout(() => setCopiedId(null), 1500);
+    } catch (err) {
+      console.error('Copy failed', err);
     }
-  ];
+  };
+
+  const handleBookingAction = (action, bookingId) => {
+    console.log(`${action} booking:`, bookingId);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Active':
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+      case 'Completed':
+        return 'bg-blue-50 text-blue-700 border border-blue-200';
+      case 'Pending':
+        return 'bg-amber-50 text-amber-700 border border-amber-200';
+      case 'Approved':
+        return 'bg-teal-50 text-teal-700 border border-teal-200';
+      case 'Rejected':
+        return 'bg-red-50 text-red-700 border border-red-200';
+      default:
+        return 'bg-gray-50 text-gray-700 border border-gray-200';
+    }
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-xl font-semibold">All Bookings</h2>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Bookings</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Manage reservations and charging slots</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="text-sm font-medium text-gray-600">
+            <span className="text-gray-900">{bookings.length}</span> Total Bookings
+          </div>
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-all">
+            Export Data
+          </button>
+        </div>
       </div>
-      
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Station</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Time</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Time</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {mockBookings.map((booking) => (
-              <tr key={booking.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm">{booking.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">{booking.user}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">{booking.station}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">{booking.startTime}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">{booking.endTime}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    booking.status === 'Active' ? 'bg-green-100 text-green-800' :
-                    booking.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {booking.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <button className="text-blue-600 hover:text-blue-800 mr-2">Edit</button>
-                  <button className="text-red-600 hover:text-red-800">Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+
+      {error ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-red-500 text-lg font-medium">{error}</div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Table Container */}
+          <div className="flex-1 overflow-x-auto bg-white">
+            <div className="min-w-[800px]">
+              <table className="w-full table-fixed">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr className="border-b border-gray-200">
+                  <th className="w-[130px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Booking ID
+                  </th>
+                  <th className="w-[140px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    EV Owner NIC
+                  </th>
+                  <th className="w-[120px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Station ID
+                  </th>
+                  <th className="w-[60px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Slot
+                  </th>
+                  <th className="w-[140px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Reservation Time
+                  </th>
+                  <th className="w-[100px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Status
+                  </th>
+                  <th className="w-[110px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Created At
+                  </th>
+                  <th className="w-[120px] px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {loading ? (
+                  Array.from({ length: itemsPerPage }).map((_, index) => (
+                    <tr key={`skeleton-${index}`} className="animate-pulse">
+                      <td className="px-4 py-3">
+                        <div className="h-3 bg-gray-200 rounded w-24"></div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="h-3 bg-gray-200 rounded w-20"></div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="h-4 bg-gray-200 rounded w-6 mx-auto"></div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="h-3 bg-gray-200 rounded w-20"></div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="h-4 bg-gray-200 rounded-full w-16"></div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="h-3 bg-gray-200 rounded w-12 mx-auto"></div>
+                      </td>
+                    </tr>
+                  ))
+                ) : displayedBookings.length > 0 ? (
+                  displayedBookings.map((booking) => {
+                    const id = booking.id || booking._id || booking.Id || booking._id?.toString();
+                    const evOwnerNic = booking.evOwnerNic || booking.EvOwnerNic || booking.evOwner || '';
+                    const stationId = booking.stationId || booking.StationId || booking.station || '';
+                    const slotId = booking.slotId ?? booking.SlotId ?? booking.slot ?? '-';
+                    const reservation = booking.reservationDateTime || booking.ReservationDateTime || booking.reservation || booking.reservationDate || null;
+                    const status = booking.status || booking.Status || '';
+                    const createdAt = booking.createdAt || booking.CreatedAt || booking.created_at || null;
+                    const isActive = typeof booking.isActive === 'boolean' ? booking.isActive : booking.IsActive ?? true;
+
+                    const formatDate = (value) => {
+                      if (!value) return '-';
+                      const d = new Date(value);
+                      if (isNaN(d.getTime())) return String(value);
+                      return d.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      });
+                    };
+
+                    const formatDateOnly = (value) => {
+                      if (!value) return '-';
+                      const d = new Date(value);
+                      if (isNaN(d.getTime())) return String(value);
+                      return d.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric'
+                      });
+                    };
+
+                    return (
+                      <tr key={id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs font-mono text-gray-900 truncate" title={id}>
+                              {String(id).slice(0, 12)}...
+                            </span>
+                            <button 
+                              onClick={() => copyToClipboard(String(id))} 
+                              className="text-gray-400 hover:text-gray-600 p-0.5 rounded hover:bg-gray-100 transition-colors flex-shrink-0"
+                              title="Copy full ID"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                            <span className="inline-flex items-center justify-center w-3 h-3 text-xs text-emerald-600 font-medium flex-shrink-0">
+                              {copiedId === String(id) && '✓'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900 truncate block" title={evOwnerNic}>{evOwnerNic}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-sm font-mono text-gray-700 truncate block" title={stationId}>
+                            {String(stationId).slice(0, 10)}...
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 text-xs font-semibold text-gray-900">
+                            {slotId}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-xs text-gray-700 block truncate">{formatDate(reservation)}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-xs text-gray-600">{formatDateOnly(createdAt)}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-0.5">
+                            <button
+                              onClick={() => handleBookingAction("view", id)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-all"
+                              title="View Details"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleBookingAction("edit", id)}
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-all"
+                              title="Edit Booking"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleBookingAction("delete", id)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-all"
+                              title="Delete Booking"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                          <Calendar className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="text-base font-medium text-gray-900">No bookings found</p>
+                          <p className="text-sm text-gray-500 mt-1">Try adjusting your search or filters</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            </div>
+          </div>
+
+          {/* Pagination */}
+          {!loading && !error && bookings.length > itemsPerPage && (
+            <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
+                  <span className="font-medium">{Math.min(currentPage * itemsPerPage, bookings.length)}</span> of{' '}
+                  <span className="font-medium">{bookings.length}</span> results
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+                  title="Previous page"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 7) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 4) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 3) {
+                      pageNum = totalPages - 6 + i;
+                    } else {
+                      pageNum = currentPage - 3 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`min-w-[2.5rem] px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          currentPage === pageNum
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+                  title="Next page"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

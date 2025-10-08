@@ -53,7 +53,7 @@ const BookingsPage = () => {
   ];
 
   return (
-    <div className="p-8 space-y-8 bg-gray-50 min-h-screen">
+    <div className="p-4 lg:p-6 xl:p-8 space-y-6 bg-gray-50 min-h-screen w-full overflow-x-hidden">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -76,7 +76,7 @@ const BookingsPage = () => {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -133,25 +133,25 @@ const BookingsPage = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex flex-col lg:flex-row gap-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
+        <div className="flex flex-col xl:flex-row gap-4">
           {/* Search */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search bookings by user, station, or booking ID..."
+                placeholder="Search bookings..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
           </div>
           
           {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            <div className="min-w-[140px]">
+          <div className="flex flex-wrap gap-2 lg:gap-3">
+            <div className="min-w-[120px] flex-1 sm:flex-none">
               <select 
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
@@ -165,7 +165,7 @@ const BookingsPage = () => {
               </select>
             </div>
             
-            <div className="min-w-[140px]">
+            <div className="min-w-[120px] flex-1 sm:flex-none">
               <select className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 <option>All Stations</option>
                 <option>Station A</option>
@@ -174,16 +174,17 @@ const BookingsPage = () => {
               </select>
             </div>
             
-            <div className="min-w-[140px]">
+            <div className="min-w-[120px] flex-1 sm:flex-none">
               <input 
                 type="date" 
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
             
-            <button className="flex items-center space-x-2 px-4 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="flex items-center space-x-2 px-3 lg:px-4 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap">
               <Filter className="w-4 h-4" />
-              <span className="text-sm font-medium">More Filters</span>
+              <span className="text-sm font-medium hidden sm:inline">More Filters</span>
+              <span className="text-sm font-medium sm:hidden">Filters</span>
             </button>
           </div>
         </div>
@@ -191,29 +192,29 @@ const BookingsPage = () => {
 
       {/* View Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
             <button 
               onClick={() => setViewMode('table')}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 viewMode === 'table' 
                   ? 'bg-white text-gray-900 shadow-sm' 
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <List className="w-4 h-4" />
-              <span>Table</span>
+              <span className="hidden sm:inline">Table</span>
             </button>
             <button 
               onClick={() => setViewMode('grid')}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 viewMode === 'grid' 
                   ? 'bg-white text-gray-900 shadow-sm' 
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <Grid3X3 className="w-4 h-4" />
-              <span>Grid</span>
+              <span className="hidden sm:inline">Grid</span>
             </button>
           </div>
           
@@ -222,10 +223,10 @@ const BookingsPage = () => {
           </div>
         </div>
         
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+        <div className="flex items-center space-x-2 lg:space-x-3">
+          <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
             <Calendar className="w-4 h-4" />
-            <span>Last updated: {new Date().toLocaleTimeString()}</span>
+            <span className="whitespace-nowrap">Last updated: {new Date().toLocaleTimeString()}</span>
           </div>
           
           <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -235,12 +236,12 @@ const BookingsPage = () => {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-w-0 overflow-hidden">
         {viewMode === 'table' ? (
           <BookingList />
         ) : (
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="p-4 lg:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
               {mockBookings.map((booking) => (
                 <BookingCard key={booking.id} booking={booking} />
               ))}
