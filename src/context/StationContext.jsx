@@ -22,7 +22,22 @@ export const StationProvider = ({ children }) => {
     }
   }, []);
 
-  const createStation = async (stationData) => {
+  const getStationById = useCallback(async (stationId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await stationApi.getStationById(stationId);
+      return { success: true, data: response.data };
+    } catch (err) {
+      console.error("Failed to fetch station:", err);
+      setError("Failed to fetch station details.");
+      return { success: false, error: err };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createStation = useCallback(async (stationData) => {
     setLoading(true);
     setError(null);
     try {
@@ -37,9 +52,9 @@ export const StationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateStation = async (stationId, updateData) => {
+  const updateStation = useCallback(async (stationId, updateData) => {
     setLoading(true);
     setError(null);
     try {
@@ -58,9 +73,9 @@ export const StationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const deactivateStation = async (stationId) => {
+  const deactivateStation = useCallback(async (stationId) => {
     setLoading(true);
     setError(null);
     try {
@@ -79,13 +94,14 @@ export const StationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const value = {
     stations,
     loading,
     error,
     fetchStations,
+    getStationById,
     createStation,
     updateStation,
     deactivateStation,

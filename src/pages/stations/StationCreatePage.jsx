@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStationContext } from "../../hooks/useStationContext";
 import showToast from "../../utils/toastNotification";
+import MapPicker from "../../components/stations/MapPicker"; 
 
 const StationCreatePage = () => {
   const navigate = useNavigate();
@@ -9,23 +10,28 @@ const StationCreatePage = () => {
 
   const [name, setName] = useState("");
   const [type, setType] = useState("AC");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [latitude, setLatitude] = useState(6.9147); 
+  const [longitude, setLongitude] = useState(79.9729);
   const [numberOfSlots, setNumberOfSlots] = useState(1);
+
+  const handleLocationChange = (newLocation) => {
+    setLatitude(newLocation.lat);
+    setLongitude(newLocation.lng);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name || !latitude || !longitude) {
-      showToast("error", "Please fill out all required fields.");
+    if (!name) {
+      showToast("error", "Please provide a station name.");
       return;
     }
 
     const stationData = {
       name,
       type,
-      latitude: parseFloat(latitude),
-      longitude: parseFloat(longitude),
+      latitude,
+      longitude,
       numberOfSlots: parseInt(numberOfSlots, 10),
     };
 
@@ -50,8 +56,8 @@ const StationCreatePage = () => {
 
       <div className="bg-white shadow rounded-lg p-6 max-w-4xl mx-auto">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
+          <div className="space-y-6">
+            <div>
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
@@ -64,82 +70,65 @@ const StationCreatePage = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                placeholder="e.g. Station D - University"
+                placeholder="e.g. SLIIT Campus North Gate"
               />
             </div>
 
             <div>
-              <label
-                htmlFor="latitude"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Latitude
+              <label className="block text-sm font-medium text-gray-700">
+                Select Location
               </label>
-              <input
-                id="latitude"
-                type="number"
-                step="any"
-                value={latitude}
-                onChange={(e) => setLatitude(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                placeholder="e.g. 6.9022"
+              <p className="text-xs text-gray-500 mb-2">
+                Drag the pin to set the exact station location.
+              </p>
+              <MapPicker
+                center={{ lat: latitude, lng: longitude }}
+                onLocationChange={handleLocationChange}
               />
+              <div className="mt-2 text-xs text-gray-600">
+                Selected Coordinates: Lat: {latitude.toFixed(4)}, Lng:{" "}
+                {longitude.toFixed(4)}
+              </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="longitude"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Longitude
-              </label>
-              <input
-                id="longitude"
-                type="number"
-                step="any"
-                value={longitude}
-                onChange={(e) => setLongitude(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                placeholder="e.g. 79.8611"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="type"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Station Type
+                </label>
+                <select
+                  id="type"
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                >
+                  <option>AC</option>
+                  <option>DC</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="slots"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Number of Slots
+                </label>
+                <input
+                  id="slots"
+                  type="number"
+                  value={numberOfSlots}
+                  onChange={(e) => setNumberOfSlots(e.target.value)}
+                  min={1}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                />
+              </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="type"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Station Type
-              </label>
-              <select
-                id="type"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              >
-                <option>AC</option>
-                <option>DC</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="slots"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Number of Slots
-              </label>
-              <input
-                id="slots"
-                type="number"
-                value={numberOfSlots}
-                onChange={(e) => setNumberOfSlots(e.target.value)}
-                min={1}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              />
-            </div>
-
-            <div className="md:col-span-2 text-right">
+            <div className="text-right">
               <button
                 type="submit"
                 disabled={loading}
