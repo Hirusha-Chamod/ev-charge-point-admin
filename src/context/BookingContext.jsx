@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { bookingApi } from '../api/bookingApi';
 
-const BookingContext = createContext();
+export const BookingContext = createContext();
 
 export const useBookingContext = () => {
   const context = useContext(BookingContext);
@@ -13,140 +14,88 @@ export const useBookingContext = () => {
 export const BookingProvider = ({ children }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
-  // Mock bookings data
-  const mockBookings = [
-    {
-      id: 1,
-      user: 'John Doe',
-      userEmail: 'john@example.com',
-      station: 'Station A - Downtown',
-      startTime: '2024-10-08T09:00:00',
-      endTime: '2024-10-08T10:00:00',
-      status: 'Active',
-      duration: '1 hour',
-      cost: 15.00,
-      paymentMethod: 'Credit Card',
-      vehicleModel: 'Tesla Model 3'
-    },
-    {
-      id: 2,
-      user: 'Jane Smith',
-      userEmail: 'jane@example.com',
-      station: 'Station B - Mall',
-      startTime: '2024-10-08T11:00:00',
-      endTime: '2024-10-08T12:30:00',
-      status: 'Completed',
-      duration: '1.5 hours',
-      cost: 22.50,
-      paymentMethod: 'Debit Card',
-      vehicleModel: 'Nissan Leaf'
-    },
-    {
-      id: 3,
-      user: 'Bob Wilson',
-      userEmail: 'bob@example.com',
-      station: 'Station C - Airport',
-      startTime: '2024-10-08T14:00:00',
-      endTime: '2024-10-08T15:00:00',
-      status: 'Pending',
-      duration: '1 hour',
-      cost: 15.00,
-      paymentMethod: 'Credit Card',
-      vehicleModel: 'BMW i3'
+  const fetchBookings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await bookingApi.getAllBookings();
+      // Expecting response.data to be an array of bookings
+      setBookings(response.data || []);
+    } catch (err) {
+      console.error('Failed to fetch bookings:', err);
+      setError('Could not fetch bookings. Please try again later.');
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  useEffect(() => {
-    // Simulate fetching bookings
-    const fetchBookings = async () => {
-      setLoading(true);
-      try {
-        // In a real app, this would be an API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setBookings(mockBookings);
-      } catch (error) {
-        console.error('Failed to fetch bookings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBookings();
   }, []);
 
-  const createBooking = async (bookingData) => {
+  // Simple wrappers for create/update/delete to keep local state in sync
+  const createBooking = useCallback(async (bookingData) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      
-      // Mock create booking
-      const newBooking = {
-        ...bookingData,
-        id: bookings.length + 1,
-        status: 'Pending',
-        cost: 15.00, // Mock calculation
-        duration: '1 hour' // Mock calculation
-      };
-      
-      setBookings(prev => [...prev, newBooking]);
-      return { success: true, booking: newBooking };
-    } catch (error) {
-      return { success: false, error: 'Failed to create booking' };
+      const response = await bookingApi.createBooking(bookingData);
+      setBookings((prev) => [...prev, response.data]);
+      return { success: true, data: response.data };
+    } catch (err) {
+      console.error('Failed to create booking:', err);
+      setError('Failed to create booking.');
+      return { success: false, error: err };
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateBooking = async (bookingId, updateData) => {
+  const updateBooking = useCallback(async (bookingId, updateData) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      
-      // Mock update booking
-      setBookings(prev => 
-        prev.map(booking => 
-          booking.id === bookingId 
-            ? { ...booking, ...updateData }
-            : booking
-        )
-      );
-      
+      const response = await bookingApi.updateBooking(bookingId, updateData);
+      setBookings((prev) => prev.map((b) => (b.id === bookingId ? response.data : b)));
+      return { success: true, data: response.data };
+    } catch (err) {
+      console.error('Failed to update booking:', err);
+      setError('Failed to update booking.');
+      return { success: false, error: err };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteBooking = useCallback(async (bookingId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await bookingApi.deleteBooking(bookingId);
+      setBookings((prev) => prev.filter((b) => b.id !== bookingId));
       return { success: true };
-    } catch (error) {
-      return { success: false, error: 'Failed to update booking' };
+    } catch (err) {
+      console.error('Failed to delete booking:', err);
+      setError('Failed to delete booking.');
+      return { success: false, error: err };
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const deleteBooking = async (bookingId) => {
-    try {
-      setLoading(true);
-      
-      // Mock delete booking
-      setBookings(prev => prev.filter(booking => booking.id !== bookingId));
-      
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: 'Failed to delete booking' };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getBookingById = (bookingId) => {
-    return bookings.find(booking => booking.id === parseInt(bookingId));
-  };
+  const getBookingById = useCallback((bookingId) => {
+    return bookings.find((booking) => booking.id === parseInt(bookingId));
+  }, [bookings]);
 
   const value = {
     bookings,
     loading,
+    error,
     selectedBooking,
     setSelectedBooking,
+    fetchBookings,
     createBooking,
     updateBooking,
     deleteBooking,
-    getBookingById
+    getBookingById,
   };
 
   return (

@@ -1,39 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, MapPin, Clock, Zap } from 'lucide-react';
+import { X, Calendar, MapPin, Clock, Zap, CheckCircle } from 'lucide-react';
 import { stationApi } from '../../api/stationApi';
 import { bookingApi } from '../../api/bookingApi';
 import { useBookingContext } from '../../context/BookingContext';
 
-const BookingModal = ({ isOpen, onClose }) => {
+const STATUS_OPTIONS = [
+  { value: 'Pending', label: 'Pending', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  { value: 'Approved', label: 'Approved', color: 'bg-teal-50 text-teal-700 border-teal-200' },
+  { value: 'Active', label: 'Active', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  { value: 'Completed', label: 'Completed', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+  { value: 'Rejected', label: 'Rejected', color: 'bg-red-50 text-red-700 border-red-200' },
+];
+
+const BookingEditModal = ({ isOpen, onClose, booking }) => {
   const { fetchBookings } = useBookingContext();
   const [formData, setFormData] = useState({
-    evOwnerNic: '',
+    reservationDateTime: '',
     stationId: '',
     slotId: '',
-    reservationDateTime: ''
+    status: ''
   });
   const [stations, setStations] = useState([]);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [stationsLoading, setStationsLoading] = useState(false);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  // Fetch stations on component mount
+  // Initialize form data when booking changes or modal opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && booking) {
+      const reservation = booking.reservationDateTime || booking.ReservationDateTime || booking.reservation || booking.reservationDate || '';
+      const stationId = booking.stationId || booking.StationId || booking.station || '';
+      const slotId = booking.slotId ?? booking.SlotId ?? booking.slot ?? '';
+      const status = booking.status || booking.Status || '';
+
+      // Format datetime for input field
+      let formattedDateTime = '';
+      if (reservation) {
+        const date = new Date(reservation);
+        if (!isNaN(date.getTime())) {
+          formattedDateTime = date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+        }
+      }
+
+      setFormData({
+        reservationDateTime: formattedDateTime,
+        stationId: String(stationId),
+        slotId: String(slotId),
+        status: status
+      });
+
       fetchStations();
     }
-  }, [isOpen]);
+  }, [isOpen, booking]);
 
   // Fetch slots when station is selected
   useEffect(() => {
-    if (formData.stationId) {
+    if (formData.stationId && isOpen) {
       fetchSlots(formData.stationId);
     } else {
       setSlots([]);
     }
-  }, [formData.stationId]);
+  }, [formData.stationId, isOpen]);
 
   const fetchStations = async () => {
     setStationsLoading(true);
@@ -44,7 +72,7 @@ const BookingModal = ({ isOpen, onClose }) => {
     } catch (err) {
       console.error('Failed to fetch stations:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load stations';
-      setError(errorMessage);
+      alert(`Error loading stations: ${errorMessage}`);
     } finally {
       setStationsLoading(false);
     }
@@ -70,7 +98,7 @@ const BookingModal = ({ isOpen, onClose }) => {
       setSlots(slotsArray);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load slots';
-      setError(errorMessage);
+      alert(`Error loading slots: ${errorMessage}`);
       setSlots([]);
     } finally {
       setSlotsLoading(false);
@@ -96,31 +124,42 @@ const BookingModal = ({ isOpen, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
-      // Validate form data
-      if (!formData.evOwnerNic || !formData.stationId || !formData.slotId || !formData.reservationDateTime) {
-        throw new Error('Please fill in all required fields');
+      if (!booking) {
+        alert('No booking selected for editing');
+        return;
       }
 
-      // Convert slotId to number
-      const bookingData = {
-        ...formData,
-        slotId: parseInt(formData.slotId)
+      // Validate form data
+      if (!formData.reservationDateTime || !formData.stationId || !formData.slotId || !formData.status) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      const bookingId = booking.id || booking._id;
+      
+      // Prepare update data
+      const updateData = {
+        reservationDateTime: formData.reservationDateTime,
+        stationId: formData.stationId,
+        slotId: parseInt(formData.slotId),
+        status: formData.status
       };
 
-      await bookingApi.createBooking(bookingData);
+      await bookingApi.updateBooking(bookingId, updateData);
+      
+      // Show success message
+      alert('Booking updated successfully!');
       
       // Refresh bookings list
       await fetchBookings();
       
-      // Reset form and close modal
-      resetForm();
+      // Close modal
       onClose();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to create booking';
-      setError(errorMessage);
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update booking';
+      alert(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -128,12 +167,11 @@ const BookingModal = ({ isOpen, onClose }) => {
 
   const resetForm = () => {
     setFormData({
-      evOwnerNic: '',
+      reservationDateTime: '',
       stationId: '',
       slotId: '',
-      reservationDateTime: ''
+      status: ''
     });
-    setError('');
   };
 
   const handleClose = () => {
@@ -152,11 +190,15 @@ const BookingModal = ({ isOpen, onClose }) => {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !booking) return null;
+
+  // Extract booking details for display
+  const bookingId = booking.id || booking._id || '';
+  const evOwnerNic = booking.evOwnerNic || booking.EvOwnerNic || booking.evOwner || '';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-      {/* Backdrop with blur */}
+      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={handleClose}
@@ -169,8 +211,8 @@ const BookingModal = ({ isOpen, onClose }) => {
           <div className="relative flex items-start justify-between">
             <div className="flex items-center space-x-4">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-1">New Booking</h2>
-                <p className="text-gray-300 text-sm">Reserve your charging slot</p>
+                <h2 className="text-2xl font-bold text-white mb-1">Edit Booking</h2>
+                <p className="text-gray-300 text-sm">Update reservation details</p>
               </div>
             </div>
             <button
@@ -185,36 +227,60 @@ const BookingModal = ({ isOpen, onClose }) => {
         {/* Form Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            {error && (
-              <div className="bg-gray-100 border-l-4 border-black rounded-r-lg p-4 animate-in slide-in-from-top-2 duration-300">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <p className="ml-3 text-sm font-medium text-gray-800">{error}</p>
+            {/* Booking Info Display */}
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Booking Information</h3>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Booking ID</label>
+                  <p className="text-sm font-mono text-gray-900 mt-1">{String(bookingId).slice(0, 24)}...</p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">EV Owner NIC</label>
+                  <p className="text-sm font-medium text-gray-900 mt-1">{evOwnerNic}</p>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* EV Owner NIC */}
+            {/* Status Selection - Primary Edit Field */}
             <div className="space-y-2">
-              <label htmlFor="evOwnerNic" className="block text-sm font-semibold text-gray-900">
-                EV Owner NIC <span className="text-black">*</span>
+              <label htmlFor="status" className="flex items-center text-sm font-semibold text-gray-900">
+                <CheckCircle className="w-4 h-4 mr-2 text-black" />
+                Booking Status <span className="text-black ml-1">*</span>
               </label>
               <div className="relative">
-                <input
-                  type="text"
-                  id="evOwnerNic"
-                  name="evOwnerNic"
-                  value={formData.evOwnerNic}
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
                   onChange={handleInputChange}
-                  placeholder="e.g., 199012345V"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900 placeholder:text-gray-500"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900 appearance-none cursor-pointer"
                   required
-                />
+                >
+                  <option value="">Select status</option>
+                  {STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-600">
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
               </div>
+              {/* Status Preview */}
+              {formData.status && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
+                    STATUS_OPTIONS.find(opt => opt.value === formData.status)?.color || 'bg-gray-50 text-gray-700 border-gray-200'
+                  }`}>
+                    {formData.status}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Station Selection */}
@@ -293,7 +359,7 @@ const BookingModal = ({ isOpen, onClose }) => {
             <div className="space-y-2">
               <label htmlFor="reservationDateTime" className="flex items-center text-sm font-semibold text-gray-900">
                 <Clock className="w-4 h-4 mr-2 text-black" />
-                Reservation Date & Time <span className="text-black ml-1">*</span>
+                Scheduled Date & Time <span className="text-black ml-1">*</span>
               </label>
               <div className="relative">
                 <input
@@ -322,10 +388,10 @@ const BookingModal = ({ isOpen, onClose }) => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Creating...
+                    Updating...
                   </span>
                 ) : (
-                  'Create Booking'
+                  'Update Booking'
                 )}
               </button>
               <button
@@ -344,4 +410,4 @@ const BookingModal = ({ isOpen, onClose }) => {
   );
 };
 
-export default BookingModal;
+export default BookingEditModal;
