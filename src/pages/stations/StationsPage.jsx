@@ -1,18 +1,43 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useStationContext } from "../../hooks/useStationContext";
+import SlotsModal from "../../components/stations/SlotsModal";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
+import showToast from "../../utils/toastNotification";
 
 const StationsPage = () => {
-  const { stations, loading, error, fetchStations } = useStationContext();
+  const { stations, loading, error, fetchStations, deactivateStation } =
+    useStationContext();
+  const [slotsModalStation, setSlotsModalStation] = useState(null);
+  const [deactivationTarget, setDeactivationTarget] = useState(null);
 
-  // Fetch stations when component mounts
   useEffect(() => {
     fetchStations();
   }, [fetchStations]);
 
-  console.log("Rendering StationsPage", stations);
+  const handleViewSlots = (station) => setSlotsModalStation(station);
+  const handleCloseSlotsModal = () => setSlotsModalStation(null);
 
-  if (loading) {
+  const openDeactivateModal = (station) => setDeactivationTarget(station);
+  const closeDeactivateModal = () => setDeactivationTarget(null);
+
+  const confirmDeactivation = async () => {
+    if (deactivationTarget) {
+      // const result = await deactivateStation(deactivationTarget.id);
+      // if (result.success) {
+      //   showToast(
+      //     "success",
+      //     `Station "${deactivationTarget.name}" deactivated.`
+      //   );
+      // } else {
+      //   showToast("error", "Failed to deactivate station.");
+      // }
+      console.log("Deactivation logic is currently disabled.");
+      // closeDeactivateModal();
+    }
+  };
+
+  if (loading && stations.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
@@ -39,7 +64,6 @@ const StationsPage = () => {
             Oversee all registered charging stations.
           </p>
         </div>
-
         <Link
           to="/stations/create"
           className="inline-flex items-center justify-center px-4 py-2 bg-gray-800 text-white font-medium rounded-lg shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
@@ -60,7 +84,7 @@ const StationsPage = () => {
         </Link>
       </div>
 
-      {stations.length === 0 ? (
+      {stations.length === 0 && !loading ? (
         <div className="bg-white shadow rounded-lg p-8 text-center">
           <p className="text-gray-500 text-lg">No stations found.</p>
           <p className="text-gray-400 text-sm mt-2">
@@ -100,7 +124,6 @@ const StationsPage = () => {
                 const [longitude, latitude] = station.location?.coordinates || [
                   0, 0,
                 ];
-
                 return (
                   <tr key={station.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -142,12 +165,24 @@ const StationsPage = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
+                      <button
+                        onClick={() => handleViewSlots(station)}
+                        className="text-gray-600 hover:text-gray-900 mr-4 font-medium"
+                      >
+                        View Slots
+                      </button>
                       <Link
                         to={`/stations/edit/${station.id}`}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-indigo-600 hover:text-indigo-900 mr-4"
                       >
                         Edit
                       </Link>
+                      <button
+                        onClick={() => openDeactivateModal(station)}
+                        className="text-red-600 hover:text-red-900 font-medium"
+                      >
+                        Deactivate
+                      </button>
                     </td>
                   </tr>
                 );
@@ -156,6 +191,22 @@ const StationsPage = () => {
           </table>
         </div>
       )}
+
+      <SlotsModal
+        isOpen={!!slotsModalStation}
+        onClose={handleCloseSlotsModal}
+        station={slotsModalStation}
+      />
+
+      <ConfirmationModal
+        isOpen={!!deactivationTarget}
+        onClose={closeDeactivateModal}
+        onConfirm={confirmDeactivation}
+        title="Deactivate Station"
+        message={`Are you sure you want to deactivate "${deactivationTarget?.name}"? This will mark the station as inactive.`}
+        confirmText="Deactivate"
+        isLoading={loading}
+      />
     </div>
   );
 };
