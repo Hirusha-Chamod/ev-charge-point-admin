@@ -80,7 +80,7 @@ const BookingDetailsModal = ({ isOpen, onClose, booking }) => {
       {/* Modal Container */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="relative bg-black px-8 pt-8 pb-6">
+        <div className="relative bg-gray-900 px-8 pt-8 pb-6">
           <div className="relative flex items-start justify-between">
             <div className="flex items-center space-x-4">
               <div>

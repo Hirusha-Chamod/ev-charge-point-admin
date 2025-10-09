@@ -207,7 +207,7 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
       {/* Modal Container */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="relative bg-black px-8 pt-8 pb-6">
+        <div className="relative bg-gray-900 px-8 pt-8 pb-6">
           <div className="relative flex items-start justify-between">
             <div className="flex items-center space-x-4">
               <div>
@@ -380,7 +380,7 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-black text-white px-6 py-3.5 rounded-xl hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 text-sm font-semibold shadow-lg shadow-black/30 hover:shadow-xl hover:shadow-black/40 hover:-translate-y-0.5 disabled:shadow-none disabled:transform-none"
+                className="flex-1 bg-gray-900 text-white px-6 py-3.5 rounded-xl hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 text-sm font-semibold shadow-lg shadow-black/30 hover:shadow-xl hover:shadow-black/40 hover:-translate-y-0.5 disabled:shadow-none disabled:transform-none"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">

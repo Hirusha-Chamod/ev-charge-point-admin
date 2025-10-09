@@ -99,7 +99,7 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
             </button>
             <button 
               onClick={onNewBooking}
-              className="flex items-center space-x-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+              className="cursor-pointer bg-gradient-to-br from-gray-700 to-gray-800 flex items-center space-x-2 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-medium">New Booking</span>

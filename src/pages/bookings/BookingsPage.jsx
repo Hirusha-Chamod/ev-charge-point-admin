@@ -113,153 +113,171 @@ const BookingsPage = () => {
   };
 
   return (
-    <div className="h-full w-full overflow-x-hidden bg-white">
-      <div className="p-3 lg:p-4 space-y-3">
+    <div className="h-full w-full overflow-x-hidden bg-gray-50">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
 
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Bookings</p>
-              <p className="text-xl font-bold text-gray-900">
-                {loading ? (
-                  <div className="h-6 bg-gray-200 rounded animate-pulse w-12"></div>
-                ) : (
-                  statistics.total
-                )}
-              </p>
-            </div>
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Bookings</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+              Manage and monitor all charging reservations
+            </p>
+          </div>
+          <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm">
+            <Calendar className="w-4 h-4 text-emerald-500" />
+            <span>Updated: {new Date().toLocaleTimeString()}</span>
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Approved</p>
-              <p className="text-xl font-bold text-emerald-600">
-                {loading ? (
-                  <div className="h-6 bg-gray-200 rounded animate-pulse w-8"></div>
-                ) : (
-                  statistics.approved
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-xl font-bold text-blue-600">
-                {loading ? (
-                  <div className="h-6 bg-gray-200 rounded animate-pulse w-8"></div>
-                ) : (
-                  statistics.completed
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-xl font-bold text-yellow-600">
-                {loading ? (
-                  <div className="h-6 bg-gray-200 rounded animate-pulse w-8"></div>
-                ) : (
-                  statistics.pending
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Search and Filters */}
-      <div className="bg-white">
-        <div className="space-y-3">
-          {/* Top row - Search and Clear button */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search by ID, NIC, Station ID, or Status..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
+        {/* Statistics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-200 group">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-gray-500 mb-2">Total Bookings</p>
+                <p className="text-3xl font-bold text-gray-900 mb-1">
+                  {loading ? (
+                    <div className="h-8 bg-gray-200 rounded animate-pulse w-16"></div>
+                  ) : (
+                    statistics.total
+                  )}
+                </p>
+                <p className="text-xs text-gray-500">All reservations</p>
+              </div>
+              <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                <Calendar className="w-7 h-7 text-gray-700" />
               </div>
             </div>
-            
-            {/* Clear Filters Button */}
-            <button
-              onClick={clearFilters}
-              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 border border-gray-200 rounded-lg transition-colors whitespace-nowrap"
-            >
-              Clear Filters
-            </button>
+          </div>
+          
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-6 rounded-2xl shadow-sm border border-emerald-200 hover:shadow-lg hover:border-emerald-300 transition-all duration-200 group">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-emerald-700 mb-2">Approved</p>
+                <p className="text-3xl font-bold text-emerald-600 mb-1">
+                  {loading ? (
+                    <div className="h-8 bg-emerald-200 rounded animate-pulse w-12"></div>
+                  ) : (
+                    statistics.approved
+                  )}
+                </p>
+                <p className="text-xs text-emerald-600">Ready to charge</p>
+              </div>
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-200">
+                <Calendar className="w-7 h-7 text-emerald-600" />
+              </div>
+            </div>
           </div>
 
-          {/* Bottom row - Filters and Results counter */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              <div className="min-w-[120px]">
-                <select 
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="all">All Status</option>
-                  {availableStatuses.map(status => (
-                    <option key={status} value={status.toLowerCase()}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 rounded-2xl shadow-sm border border-blue-200 hover:shadow-lg hover:border-blue-300 transition-all duration-200 group">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-blue-500 mb-2">Completed</p>
+                <p className="text-3xl font-bold text-blue-500 mb-1">
+                  {loading ? (
+                    <div className="h-8 bg-gray-200 rounded animate-pulse w-12"></div>
+                  ) : (
+                    statistics.completed
+                  )}
+                </p>
+                <p className="text-xs text-blue-500">Finished sessions</p>
+              </div>
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-200">
+                <Calendar className="w-7 h-7 text-blue-500" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 p-6 rounded-2xl shadow-sm border border-yellow-200 hover:shadow-lg hover:border-yellow-300 transition-all duration-200 group">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-yellow-700 mb-2">Pending</p>
+                <p className="text-3xl font-bold text-yellow-600 mb-1">
+                  {loading ? (
+                    <div className="h-8 bg-yellow-200 rounded animate-pulse w-12"></div>
+                  ) : (
+                    statistics.pending
+                  )}
+                </p>
+                <p className="text-xs text-yellow-600">Awaiting approval</p>
+              </div>
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-200">
+                <Calendar className="w-7 h-7 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div className="space-y-4">
+            {/* Top row - Search and Clear button */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search by ID, NIC, Station ID, or Status..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-sm font-medium bg-gray-50 focus:bg-white"
+                  />
+                </div>
               </div>
               
-              <div className="min-w-[120px]">
-                <input 
-                  type="date" 
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  title="Filter by reservation date"
-                />
-              </div>
+              {/* Clear Filters Button */}
+              <button
+                onClick={clearFilters}
+                className="px-6 py-3 text-sm font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-50 border border-gray-300 rounded-xl transition-all duration-200 whitespace-nowrap hover:shadow-sm"
+              >
+                Clear Filters
+              </button>
             </div>
 
-            {/* Results counter */}
-            {(searchTerm || selectedStatus !== 'all' || selectedDate) && (
-              <div className="text-sm text-gray-600 whitespace-nowrap">
-                Showing <span className="font-medium text-gray-900">{filteredBookings.length}</span> of <span className="font-medium text-gray-900">{bookings.length}</span> bookings
+            {/* Bottom row - Filters and Results counter */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-wrap gap-3">
+                <div className="min-w-[140px]">
+                  <select 
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-sm font-medium bg-gray-50 focus:bg-white"
+                  >
+                    <option value="all">All Status</option>
+                    {availableStatuses.map(status => (
+                      <option key={status} value={status.toLowerCase()}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="min-w-[140px]">
+                  <input 
+                    type="date" 
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-sm font-medium bg-gray-50 focus:bg-white"
+                    title="Filter by reservation date"
+                  />
+                </div>
               </div>
-            )}
+
+              {/* Results counter */}
+              {(searchTerm || selectedStatus !== 'all' || selectedDate) && (
+                <div className="text-sm text-gray-600 whitespace-nowrap bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                  Showing <span className="font-semibold text-emerald-600">{filteredBookings.length}</span> of <span className="font-semibold text-gray-900">{bookings.length}</span> bookings
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
         {/* Content */}
-        <div className="bg-white min-w-0 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 min-w-0 overflow-hidden">
           <BookingList 
             filteredBookings={filteredBookings} 
             onExport={exportToCSV}
