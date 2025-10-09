@@ -134,8 +134,14 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
                   <th className="w-[60px] px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                     Slot
                   </th>
-                  <th className="w-[140px] px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                    Reservation Time
+                  <th className="w-[110px] px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Date
+                  </th>
+                  <th className="w-[110px] px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Start Time
+                  </th>
+                  <th className="w-[110px] px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    End Time
                   </th>
                   <th className="w-[100px] px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                     Status
@@ -184,23 +190,12 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
                     const evOwnerNic = booking.evOwnerNic || booking.EvOwnerNic || booking.evOwner || '';
                     const stationId = booking.stationId || booking.StationId || booking.station || '';
                     const slotId = booking.slotId ?? booking.SlotId ?? booking.slot ?? '-';
-                    const reservation = booking.reservationDateTime || booking.ReservationDateTime || booking.reservation || booking.reservationDate || null;
+                    const bookingDate = booking.bookingDate || booking.BookingDate || null;
+                    const startTime = booking.startTime || booking.StartTime || null;
+                    const endTime = booking.endTime || booking.EndTime || null;
                     const status = booking.status || booking.Status || '';
                     const createdAt = booking.createdAt || booking.CreatedAt || booking.created_at || null;
                     const isActive = typeof booking.isActive === 'boolean' ? booking.isActive : booking.IsActive ?? true;
-
-                    const formatDate = (value) => {
-                      if (!value) return '-';
-                      const d = new Date(value);
-                      if (isNaN(d.getTime())) return String(value);
-                      return d.toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      });
-                    };
 
                     const formatDateOnly = (value) => {
                       if (!value) return '-';
@@ -210,6 +205,18 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
                         month: 'short', 
                         day: 'numeric', 
                         year: 'numeric'
+                      });
+                    };
+                    const formatTime = (value) => {
+                      if (!value) return '-';
+                      const d = new Date(value);
+                      if (isNaN(d.getTime())) return String(value);
+                      // Always show time in UTC
+                      return d.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                        timeZone: 'UTC'
                       });
                     };
 
@@ -246,7 +253,13 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
                           </span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="text-xs text-gray-700 block truncate">{formatDate(reservation)}</span>
+                          <span className="text-xs text-gray-700 block truncate">{formatDateOnly(bookingDate)}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-xs text-gray-700 block truncate">{formatTime(startTime)}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-xs text-gray-700 block truncate">{formatTime(endTime)}</span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>

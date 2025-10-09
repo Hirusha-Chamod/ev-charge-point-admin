@@ -15,7 +15,9 @@ const STATUS_OPTIONS = [
 const BookingEditModal = ({ isOpen, onClose, booking }) => {
   const { fetchBookings } = useBookingContext();
   const [formData, setFormData] = useState({
-    reservationDateTime: '',
+    bookingDate: '',
+    startTime: '',
+    endTime: '',
     stationId: '',
     slotId: '',
     status: ''
@@ -29,22 +31,40 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
   // Initialize form data when booking changes or modal opens
   useEffect(() => {
     if (isOpen && booking) {
-      const reservation = booking.reservationDateTime || booking.ReservationDateTime || booking.reservation || booking.reservationDate || '';
+      const bookingDate = booking.bookingDate || booking.BookingDate || '';
+      const startTime = booking.startTime || booking.StartTime || '';
+      const endTime = booking.endTime || booking.EndTime || '';
       const stationId = booking.stationId || booking.StationId || booking.station || '';
       const slotId = booking.slotId ?? booking.SlotId ?? booking.slot ?? '';
       const status = booking.status || booking.Status || '';
 
-      // Format datetime for input field
-      let formattedDateTime = '';
-      if (reservation) {
-        const date = new Date(reservation);
-        if (!isNaN(date.getTime())) {
-          formattedDateTime = date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+      // Format date and time for input fields (always UTC)
+      let formattedDate = '';
+      let formattedStart = '';
+      let formattedEnd = '';
+      if (bookingDate) {
+        const d = new Date(bookingDate);
+        if (!isNaN(d.getTime())) {
+          formattedDate = d.toISOString().slice(0, 10); // YYYY-MM-DD
+        }
+      }
+      if (startTime) {
+        const d = new Date(startTime);
+        if (!isNaN(d.getTime())) {
+          formattedStart = d.toISOString().slice(11, 16); // HH:MM
+        }
+      }
+      if (endTime) {
+        const d = new Date(endTime);
+        if (!isNaN(d.getTime())) {
+          formattedEnd = d.toISOString().slice(11, 16); // HH:MM
         }
       }
 
       setFormData({
-        reservationDateTime: formattedDateTime,
+        bookingDate: formattedDate,
+        startTime: formattedStart,
+        endTime: formattedEnd,
         stationId: String(stationId),
         slotId: String(slotId),
         status: status
@@ -132,16 +152,26 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
       }
 
       // Validate form data
-      if (!formData.reservationDateTime || !formData.stationId || !formData.slotId || !formData.status) {
+      if (!formData.bookingDate || !formData.startTime || !formData.endTime || !formData.stationId || !formData.slotId || !formData.status) {
         alert('Please fill in all required fields');
         return;
       }
 
       const bookingId = booking.id || booking._id;
-      
-      // Prepare update data
+
+      // Convert date and time to ISO 8601 UTC
+      const toIsoDateTime = (date, time) => {
+        if (!date || !time) return '';
+        const [year, month, day] = date.split('-');
+        const [hour, minute] = time.split(':');
+        const dt = new Date(Date.UTC(year, month - 1, day, hour, minute));
+        return dt.toISOString();
+      };
+
       const updateData = {
-        reservationDateTime: formData.reservationDateTime,
+        bookingDate: new Date(formData.bookingDate + 'T00:00:00Z').toISOString(),
+        startTime: toIsoDateTime(formData.bookingDate, formData.startTime),
+        endTime: toIsoDateTime(formData.bookingDate, formData.endTime),
         stationId: formData.stationId,
         slotId: parseInt(formData.slotId),
         status: formData.status
@@ -167,7 +197,9 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
 
   const resetForm = () => {
     setFormData({
-      reservationDateTime: '',
+      bookingDate: '',
+      startTime: '',
+      endTime: '',
       stationId: '',
       slotId: '',
       status: ''
@@ -355,22 +387,60 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
               </div>
             </div>
 
-            {/* Reservation Date Time */}
+            {/* Booking Date */}
             <div className="space-y-2">
-              <label htmlFor="reservationDateTime" className="flex items-center text-sm font-semibold text-gray-900">
-                <Clock className="w-4 h-4 mr-2 text-black" />
-                Scheduled Date & Time <span className="text-black ml-1">*</span>
+              <label htmlFor="bookingDate" className="flex items-center text-sm font-semibold text-gray-900">
+                <Calendar className="w-4 h-4 mr-2 text-black" />
+                Booking Date <span className="text-black ml-1">*</span>
               </label>
               <div className="relative">
                 <input
-                  type="datetime-local"
-                  id="reservationDateTime"
-                  name="reservationDateTime"
-                  value={formData.reservationDateTime}
+                  type="date"
+                  id="bookingDate"
+                  name="bookingDate"
+                  value={formData.bookingDate}
                   onChange={handleInputChange}
-                  min={getCurrentDateTime()}
+                  min={getCurrentDateTime().slice(0, 10)}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900"
                   required
+                />
+              </div>
+            </div>
+
+            {/* Start Time */}
+            <div className="space-y-2">
+              <label htmlFor="startTime" className="flex items-center text-sm font-semibold text-gray-900">
+                <Clock className="w-4 h-4 mr-2 text-black" />
+                Start Time <span className="text-black ml-1">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="time"
+                  id="startTime"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900"
+                />
+              </div>
+            </div>
+
+            {/* End Time */}
+            <div className="space-y-2">
+              <label htmlFor="endTime" className="flex items-center text-sm font-semibold text-gray-900">
+                <Clock className="w-4 h-4 mr-2 text-black" />
+                End Time <span className="text-black ml-1">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="time"
+                  id="endTime"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-black focus:bg-white transition-all duration-200 text-sm font-medium text-gray-900"
                 />
               </div>
             </div>

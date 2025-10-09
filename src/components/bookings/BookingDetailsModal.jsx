@@ -9,24 +9,12 @@ const BookingDetailsModal = ({ isOpen, onClose, booking }) => {
   const evOwnerNic = booking.evOwnerNic || booking.EvOwnerNic || booking.evOwner || '';
   const stationId = booking.stationId || booking.StationId || booking.station || '';
   const slotId = booking.slotId ?? booking.SlotId ?? booking.slot ?? '-';
-  const reservation = booking.reservationDateTime || booking.ReservationDateTime || booking.reservation || booking.reservationDate || null;
+  const bookingDate = booking.bookingDate || booking.BookingDate || null;
+  const startTime = booking.startTime || booking.StartTime || null;
+  const endTime = booking.endTime || booking.EndTime || null;
   const status = booking.status || booking.Status || '';
   const createdAt = booking.createdAt || booking.CreatedAt || booking.created_at || null;
   const updatedAt = booking.updatedAt || booking.UpdatedAt || booking.updated_at || null;
-
-  const formatDateTime = (value) => {
-    if (!value) return 'Not specified';
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return String(value);
-    return d.toLocaleDateString('en-US', { 
-      weekday: 'long',
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   const formatDate = (value) => {
     if (!value) return 'Not specified';
@@ -36,6 +24,18 @@ const BookingDetailsModal = ({ isOpen, onClose, booking }) => {
       month: 'long', 
       day: 'numeric', 
       year: 'numeric'
+    });
+  };
+  const formatTime = (value) => {
+    if (!value) return 'Not specified';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return String(value);
+    // Always show time in UTC
+    return d.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'UTC'
     });
   };
 
@@ -175,11 +175,23 @@ const BookingDetailsModal = ({ isOpen, onClose, booking }) => {
                 <Clock className="w-5 h-5 mr-2" />
                 Reservation Details
               </h3>
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled Date & Time</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Booking Date</label>
                   <p className="text-sm font-medium text-gray-900 bg-white px-3 py-2 rounded-lg border">
-                    {formatDateTime(reservation)}
+                    {formatDate(bookingDate)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</label>
+                  <p className="text-sm font-medium text-gray-900 bg-white px-3 py-2 rounded-lg border">
+                    {formatTime(startTime)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</label>
+                  <p className="text-sm font-medium text-gray-900 bg-white px-3 py-2 rounded-lg border">
+                    {formatTime(endTime)}
                   </p>
                 </div>
               </div>
