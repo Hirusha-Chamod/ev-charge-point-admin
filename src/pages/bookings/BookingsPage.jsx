@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-  Plus, 
-  Download, 
   Filter, 
   Search,
   Grid3X3,
@@ -27,7 +25,7 @@ const BookingsPage = () => {
   useEffect(() => {
     fetchBookings();
   }, []);
-  
+
   // Filter and search bookings
   const filteredBookings = useMemo(() => {
     return bookings.filter(booking => {
@@ -115,46 +113,22 @@ const BookingsPage = () => {
   };
 
   return (
-    <div className="h-full w-full overflow-x-hidden">
-      <div className="p-4 lg:p-6 xl:p-8 space-y-6">
-        {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
-          <p className="text-gray-600 mt-1">Manage all charging station bookings</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button 
-            onClick={exportToCSV}
-            disabled={filteredBookings.length === 0}
-            className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title={filteredBookings.length === 0 ? 'No data to export' : `Export ${filteredBookings.length} bookings`}
-          >
-            <Download className="w-4 h-4" />
-            <span className="text-sm font-medium">Export</span>
-          </button>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">New Booking</span>
-          </button>
-        </div>
-      </div>
+    <div className="h-full w-full overflow-x-hidden bg-white">
+      <div className="p-3 lg:p-4 space-y-3">
+
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Total Bookings</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xl font-bold text-gray-900">
                 {loading ? (
-                  <div className="h-8 bg-gray-200 rounded animate-pulse w-12"></div>
+                  <div className="h-6 bg-gray-200 rounded animate-pulse w-12"></div>
                 ) : (
                   statistics.total
                 )}
@@ -163,16 +137,16 @@ const BookingsPage = () => {
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-emerald-600" />
+            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-emerald-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Approved</p>
-              <p className="text-2xl font-bold text-emerald-600">
+              <p className="text-xl font-bold text-emerald-600">
                 {loading ? (
-                  <div className="h-8 bg-gray-200 rounded animate-pulse w-8"></div>
+                  <div className="h-6 bg-gray-200 rounded animate-pulse w-8"></div>
                 ) : (
                   statistics.approved
                 )}
@@ -181,16 +155,16 @@ const BookingsPage = () => {
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-blue-600" />
+            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-xl font-bold text-blue-600">
                 {loading ? (
-                  <div className="h-8 bg-gray-200 rounded animate-pulse w-8"></div>
+                  <div className="h-6 bg-gray-200 rounded animate-pulse w-8"></div>
                 ) : (
                   statistics.completed
                 )}
@@ -199,16 +173,16 @@ const BookingsPage = () => {
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-yellow-600" />
+            <div className="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-yellow-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">
+              <p className="text-xl font-bold text-yellow-600">
                 {loading ? (
-                  <div className="h-8 bg-gray-200 rounded animate-pulse w-8"></div>
+                  <div className="h-6 bg-gray-200 rounded animate-pulse w-8"></div>
                 ) : (
                   statistics.pending
                 )}
@@ -219,10 +193,10 @@ const BookingsPage = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
-        <div className="space-y-4">
+      <div className="bg-white">
+        <div className="space-y-3">
           {/* Top row - Search and Clear button */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 min-w-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -231,30 +205,28 @@ const BookingsPage = () => {
                   placeholder="Search by ID, NIC, Station ID, or Status..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
               </div>
             </div>
             
             {/* Clear Filters Button */}
-            {(searchTerm || selectedStatus !== 'all' || selectedDate) && (
-              <button
-                onClick={clearFilters}
-                className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 border border-gray-200 rounded-lg transition-colors whitespace-nowrap"
-              >
-                Clear Filters
-              </button>
-            )}
+            <button
+              onClick={clearFilters}
+              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 border border-gray-200 rounded-lg transition-colors whitespace-nowrap"
+            >
+              Clear Filters
+            </button>
           </div>
 
           {/* Bottom row - Filters and Results counter */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex flex-wrap gap-2 lg:gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
               <div className="min-w-[120px]">
                 <select 
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 >
                   <option value="all">All Status</option>
                   {availableStatuses.map(status => (
@@ -270,7 +242,7 @@ const BookingsPage = () => {
                   type="date" 
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   title="Filter by reservation date"
                 />
               </div>
@@ -287,8 +259,12 @@ const BookingsPage = () => {
       </div>
 
         {/* Content */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-w-0 overflow-hidden">
-          <BookingList filteredBookings={filteredBookings} />
+        <div className="bg-white min-w-0 overflow-hidden">
+          <BookingList 
+            filteredBookings={filteredBookings} 
+            onExport={exportToCSV}
+            onNewBooking={() => setIsModalOpen(true)}
+          />
         </div>
       </div>
       

@@ -39,10 +39,12 @@ const BookingModal = ({ isOpen, onClose }) => {
     setStationsLoading(true);
     try {
       const response = await stationApi.getAllStations();
-      setStations(response.data || []);
+      const stationsData = response.data?.data || response.data || [];
+      setStations(stationsData);
     } catch (err) {
       console.error('Failed to fetch stations:', err);
-      setError('Failed to load stations');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to load stations';
+      setError(errorMessage);
     } finally {
       setStationsLoading(false);
     }
@@ -52,21 +54,23 @@ const BookingModal = ({ isOpen, onClose }) => {
     setSlotsLoading(true);
     try {
       const response = await stationApi.getStationById(stationId);
-      const stationData = response.data;
+      const stationData = response.data?.data || response.data || {};
       
-      // Assuming the station has a slots array or numberOfSlots property
-      // Adjust this based on your actual API response structure
-      const numberOfSlots = stationData.numberOfSlots || stationData.slots?.length || 4;
+      const numberOfSlots = stationData.numberOfSlots || 
+                           stationData.slots?.length || 
+                           stationData.totalSlots || 
+                           4;
+      
       const slotsArray = Array.from({ length: numberOfSlots }, (_, index) => ({
         id: index + 1,
         name: `Slot ${index + 1}`,
-        available: true // You might want to check availability from the API
+        available: true
       }));
       
       setSlots(slotsArray);
     } catch (err) {
-      console.error('Failed to fetch slots:', err);
-      setError('Failed to load slots for this station');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to load slots';
+      setError(errorMessage);
       setSlots([]);
     } finally {
       setSlotsLoading(false);
@@ -115,8 +119,8 @@ const BookingModal = ({ isOpen, onClose }) => {
       resetForm();
       onClose();
     } catch (err) {
-      console.error('Failed to create booking:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to create booking');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create booking';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
