@@ -15,6 +15,7 @@ export const UserProvider = ({ children }) => {
       const response = await userApi.getAllUsers();
       setUsers(response.data);
     } catch (err) {
+      setUsers([]);
       console.error("Failed to fetch user:", err);
       setUsersError("Could not fetch user. Please try again later.");
     } finally {
@@ -91,7 +92,5 @@ export const UserProvider = ({ children }) => {
     deleteUser,
   };
 
-  return (
-    <UserContext.Provider value={value}>{children}</UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
