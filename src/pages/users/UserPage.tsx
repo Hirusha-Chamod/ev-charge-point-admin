@@ -10,8 +10,6 @@ const UserPage = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  console.log("Rendering StationsPage", users);
-
   if (usersLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
