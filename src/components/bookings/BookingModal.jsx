@@ -3,6 +3,7 @@ import { X, Calendar, MapPin, Clock, Zap } from 'lucide-react';
 import { stationApi } from '../../api/stationApi';
 import { bookingApi } from '../../api/bookingApi';
 import { useBookingContext } from '../../context/BookingContext';
+import showToast from '../../utils/toastNotification';
 
 const BookingModal = ({ isOpen, onClose }) => {
   const { fetchBookings } = useBookingContext();
@@ -19,7 +20,7 @@ const BookingModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [stationsLoading, setStationsLoading] = useState(false);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [error, setError] = useState('');
+  // Remove error state, use toast instead
 
   // Fetch stations on component mount
   useEffect(() => {
@@ -46,7 +47,7 @@ const BookingModal = ({ isOpen, onClose }) => {
     } catch (err) {
       console.error('Failed to fetch stations:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load stations';
-      setError(errorMessage);
+      showToast('error', `Error loading stations: ${errorMessage}`);
     } finally {
       setStationsLoading(false);
     }
@@ -57,22 +58,19 @@ const BookingModal = ({ isOpen, onClose }) => {
     try {
       const response = await stationApi.getStationById(stationId);
       const stationData = response.data?.data || response.data || {};
-      
       const numberOfSlots = stationData.numberOfSlots || 
                            stationData.slots?.length || 
                            stationData.totalSlots || 
                            4;
-      
       const slotsArray = Array.from({ length: numberOfSlots }, (_, index) => ({
         id: index + 1,
         name: `Slot ${index + 1}`,
         available: true
       }));
-      
       setSlots(slotsArray);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load slots';
-      setError(errorMessage);
+      showToast('error', `Error loading slots: ${errorMessage}`);
       setSlots([]);
     } finally {
       setSlotsLoading(false);
@@ -98,12 +96,13 @@ const BookingModal = ({ isOpen, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
       // Validate form data
       if (!formData.evOwnerNic || !formData.stationId || !formData.slotId || !formData.bookingDate || !formData.startTime || !formData.endTime) {
-        throw new Error('Please fill in all required fields');
+        showToast('error', 'Please fill in all required fields');
+        setLoading(false);
+        return;
       }
 
       // Convert slotId to number and times to ISO 8601
@@ -126,15 +125,44 @@ const BookingModal = ({ isOpen, onClose }) => {
         endTime: toIsoDateTime(formData.bookingDate, formData.endTime)
       };
 
-  await bookingApi.createBooking(bookingData);
+      await bookingApi.createBooking(bookingData);
+      showToast('success', 'Booking created successfully!');
       // Refresh bookings list
       await fetchBookings();
       // Reset form and close modal
       resetForm();
       onClose();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to create booking';
-      setError(errorMessage);
+      let errorMessage = 'Failed to create booking';
+      if (err.response?.data) {
+        const data = err.response.data;
+        // Check for validation errors
+        if (data.errors) {
+          // Flatten all error messages into a single string, each on a new line
+          const errorList = [];
+          Object.values(data.errors).forEach(arr => {
+            if (Array.isArray(arr)) {
+              errorList.push(...arr);
+            }
+          });
+          if (errorList.length > 0) {
+            errorMessage = errorList.join('\n');
+          }
+        } else if (data.error) {
+          errorMessage = data.error;
+        } else if (data.message) {
+          errorMessage = data.message;
+        } else if (typeof data === 'string') {
+          errorMessage = data;
+        }
+        if (!errorMessage && err.response.status) {
+          errorMessage = `Request failed with status code ${err.response.status}`;
+        }
+      }
+      if (!errorMessage && err.message) {
+        errorMessage = err.message;
+      }
+      showToast('error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -149,7 +177,6 @@ const BookingModal = ({ isOpen, onClose }) => {
       startTime: '',
       endTime: ''
     });
-    setError('');
   };
 
   const handleClose = () => {
@@ -214,19 +241,6 @@ const BookingModal = ({ isOpen, onClose }) => {
         {/* Form Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            {error && (
-              <div className="bg-gray-100 border-l-4 border-black rounded-r-lg p-4 animate-in slide-in-from-top-2 duration-300">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <p className="ml-3 text-sm font-medium text-gray-800">{error}</p>
-                </div>
-              </div>
-            )}
-
             {/* EV Owner NIC */}
             <div className="space-y-2">
               <label htmlFor="evOwnerNic" className="block text-sm font-semibold text-gray-900">

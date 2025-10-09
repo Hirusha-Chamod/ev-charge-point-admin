@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import showToast from '../../utils/toastNotification';
 import { X, Calendar, MapPin, Clock, Zap, CheckCircle } from 'lucide-react';
 import { stationApi } from '../../api/stationApi';
 import { bookingApi } from '../../api/bookingApi';
@@ -92,7 +93,7 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
     } catch (err) {
       console.error('Failed to fetch stations:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load stations';
-      alert(`Error loading stations: ${errorMessage}`);
+      showToast('error', `Error loading stations: ${errorMessage}`);
     } finally {
       setStationsLoading(false);
     }
@@ -118,7 +119,7 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
       setSlots(slotsArray);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load slots';
-      alert(`Error loading slots: ${errorMessage}`);
+      showToast('error', `Error loading slots: ${errorMessage}`);
       setSlots([]);
     } finally {
       setSlotsLoading(false);
@@ -144,55 +145,59 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      if (!booking) {
-        alert('No booking selected for editing');
-        return;
-      }
-
-      // Validate form data
-      if (!formData.bookingDate || !formData.startTime || !formData.endTime || !formData.stationId || !formData.slotId || !formData.status) {
-        alert('Please fill in all required fields');
-        return;
-      }
-
-      const bookingId = booking.id || booking._id;
-
-      // Convert date and time to ISO 8601 UTC
-      const toIsoDateTime = (date, time) => {
-        if (!date || !time) return '';
-        const [year, month, day] = date.split('-');
-        const [hour, minute] = time.split(':');
-        const dt = new Date(Date.UTC(year, month - 1, day, hour, minute));
-        return dt.toISOString();
-      };
-
-      const updateData = {
-        bookingDate: new Date(formData.bookingDate + 'T00:00:00Z').toISOString(),
-        startTime: toIsoDateTime(formData.bookingDate, formData.startTime),
-        endTime: toIsoDateTime(formData.bookingDate, formData.endTime),
+      // Prepare payload for booking update
+      const payload = {
+        bookingDate: formData.bookingDate,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
         stationId: formData.stationId,
-        slotId: parseInt(formData.slotId),
+        slotId: formData.slotId,
         status: formData.status
       };
 
-      await bookingApi.updateBooking(bookingId, updateData);
-      
-      // Show success message
-      alert('Booking updated successfully!');
-      
-      // Refresh bookings list
+      // Call API to update booking
+      const bookingId = booking.id || booking._id;
+      await bookingApi.updateBooking(bookingId, payload);
+
+      showToast('success', 'Booking updated successfully!');
       await fetchBookings();
-      
-      // Close modal
       onClose();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to update booking';
-      alert(`Error: ${errorMessage}`);
-    } finally {
-      setLoading(false);
+      console.error('BookingEditModal full error object:', err);
+      let errorMessage = 'Failed to update booking';
+      if (err.response?.data) {
+        const data = err.response.data;
+        console.log('BookingEditModal error response data:', data);
+        // Check for validation errors
+        if (data.errors) {
+          // Flatten all error messages into a single string, each on a new line
+          const errorList = [];
+          Object.values(data.errors).forEach(arr => {
+            if (Array.isArray(arr)) {
+              errorList.push(...arr);
+            }
+          });
+          if (errorList.length > 0) {
+            errorMessage = errorList.join('\n');
+          }
+        } else if (data.error) {
+          errorMessage = data.error;
+        } else if (data.message) {
+          errorMessage = data.message;
+        } else if (typeof data === 'string') {
+          errorMessage = data;
+        }
+        if (!errorMessage && err.response.status) {
+          errorMessage = `Request failed with status code ${err.response.status}`;
+        }
+      }
+      if (!errorMessage && err.message) {
+        errorMessage = err.message;
+      }
+      showToast('error', errorMessage);
     }
+    setLoading(false);
   };
 
   const resetForm = () => {
@@ -479,5 +484,4 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
     </div>
   );
 };
-
 export default BookingEditModal;
