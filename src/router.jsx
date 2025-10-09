@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { BookingProvider } from "./context/BookingContext";
@@ -34,18 +34,30 @@ const ProtectedRoute = ({ children }) => {
 
 // Layout Component
 const Layout = ({ children }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Fixed Navbar */}
       <div className="flex-shrink-0">
-        <Navbar />
+        <Navbar 
+          onMenuToggle={handleMenuToggle} 
+          isMobileMenuOpen={isMobileMenuOpen}
+        />
       </div>
       
       {/* Main layout with sidebar and content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Fixed Sidebar */}
         <div className="flex-shrink-0">
-          <Sidebar />
+          <Sidebar 
+            isMobileMenuOpen={isMobileMenuOpen}
+            setIsMobileMenuOpen={setIsMobileMenuOpen}
+          />
         </div>
         
         {/* Scrollable Main Content */}
