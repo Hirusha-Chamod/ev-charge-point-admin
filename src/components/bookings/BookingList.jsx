@@ -299,7 +299,7 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
                   )
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-16 text-center">
+                    <td colSpan={10} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
                           <Calendar className="w-8 h-8 text-gray-400" />

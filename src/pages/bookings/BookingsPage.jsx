@@ -34,8 +34,8 @@ const BookingsPage = () => {
       const evOwnerNic = booking.evOwnerNic || booking.EvOwnerNic || booking.evOwner || '';
       const stationId = booking.stationId || booking.StationId || booking.station || '';
       const status = booking.status || booking.Status || '';
-      const reservationDate = booking.reservationDateTime || booking.ReservationDateTime || booking.reservation || booking.reservationDate;
-      
+      const bookingDate = booking.bookingDate || booking.BookingDate || '';
+
       // Search filter
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
@@ -48,9 +48,9 @@ const BookingsPage = () => {
       const matchesStatus = selectedStatus === 'all' || 
         status.toLowerCase() === selectedStatus.toLowerCase();
 
-      // Date filter
+      // Date filter (compare YYYY-MM-DD)
       const matchesDate = !selectedDate || 
-        (reservationDate && new Date(reservationDate).toDateString() === new Date(selectedDate).toDateString());
+        (bookingDate && new Date(bookingDate).toISOString().slice(0, 10) === selectedDate);
 
       return matchesSearch && matchesStatus && matchesDate;
     });
