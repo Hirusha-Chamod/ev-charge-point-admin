@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   Plus, 
   Download, 
@@ -13,6 +12,7 @@ import {
 } from 'lucide-react';
 import BookingList from '../../components/bookings/BookingList';
 import BookingCard from '../../components/bookings/BookingCard';
+import BookingModal from '../../components/bookings/BookingModal';
 import { useBookingContext } from '../../context/BookingContext';
 
 const BookingsPage = () => {
@@ -21,11 +21,13 @@ const BookingsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Fetch bookings on component mount
   useEffect(() => {
     fetchBookings();
-  }, [fetchBookings]);
-
+  }, []);
+  
   // Filter and search bookings
   const filteredBookings = useMemo(() => {
     return bookings.filter(booking => {
@@ -131,13 +133,13 @@ const BookingsPage = () => {
             <Download className="w-4 h-4" />
             <span className="text-sm font-medium">Export</span>
           </button>
-          <Link 
-            to="/bookings/create"
-            className="flex items-center space-x-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-decoration-none"
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center space-x-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span className="text-sm font-medium">New Booking</span>
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -289,6 +291,12 @@ const BookingsPage = () => {
           <BookingList filteredBookings={filteredBookings} />
         </div>
       </div>
+      
+      {/* Booking Modal */}
+      <BookingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 };

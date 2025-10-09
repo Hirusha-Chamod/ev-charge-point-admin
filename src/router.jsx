@@ -6,7 +6,6 @@ import Navbar from "./components/common/Navbar";
 import Sidebar from "./components/common/Sidebar";
 import Dashboard from "./pages/dashboard/Dashboard";
 import BookingsPage from "./pages/bookings/BookingsPage";
-import BookingCreatePage from "./pages/bookings/BookingCreatePage";
 import BookingEditPage from "./pages/bookings/BookingEditPage";
 import StationsPage from "./pages/stations/StationsPage";
 import StationCreatePage from "./pages/stations/StationCreatePage";
@@ -101,17 +100,6 @@ const AppRouter = () => {
                     <ProtectedRoute>
                       <Layout>
                         <BookingsPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-
-                <Route
-                  path="/bookings/create"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <BookingCreatePage />
                       </Layout>
                     </ProtectedRoute>
                   }
