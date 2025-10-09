@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Plus, 
@@ -16,11 +16,15 @@ import BookingCard from '../../components/bookings/BookingCard';
 import { useBookingContext } from '../../context/BookingContext';
 
 const BookingsPage = () => {
-  const { bookings, loading, error } = useBookingContext();
+  const { bookings, loading, error, fetchBookings } = useBookingContext();
   const [viewMode, setViewMode] = useState('table');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState('');
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
 
   // Filter and search bookings
   const filteredBookings = useMemo(() => {

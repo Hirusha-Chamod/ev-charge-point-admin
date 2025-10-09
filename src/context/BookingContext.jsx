@@ -32,10 +32,6 @@ export const BookingProvider = ({ children }) => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
-
   // Simple wrappers for create/update/delete to keep local state in sync
   const createBooking = useCallback(async (bookingData) => {
     setLoading(true);
