@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Edit2, Trash2, Copy, Eye, Calendar, ChevronLeft, ChevronRight, Download, Plus } from 'lucide-react';
 import { useBookingContext } from '../../context/BookingContext';
 import BookingDetailsModal from './BookingDetailsModal';
+import BookingEditModal from './BookingEditModal';
 
 const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
   const { bookings: allBookings, loading, error } = useBookingContext();
@@ -13,6 +14,7 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const itemsPerPage = 5;
 
   const displayedBookings = useMemo(() => {
@@ -41,8 +43,8 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
         setIsDetailsModalOpen(true);
         break;
       case 'edit':
-        console.log('Edit booking:', bookingId);
-        // TODO: Implement edit functionality
+        setSelectedBooking(booking);
+        setIsEditModalOpen(true);
         break;
       case 'delete':
         console.log('Delete booking:', bookingId);
@@ -270,13 +272,6 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => handleBookingAction("delete", id)}
-                              className="cursor-pointer p-1.5 text-red-600 hover:bg-red-50 rounded transition-all"
-                              title="Delete Booking"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -381,6 +376,16 @@ const BookingList = ({ filteredBookings, onExport, onNewBooking }) => {
         isOpen={isDetailsModalOpen}
         onClose={() => {
           setIsDetailsModalOpen(false);
+          setSelectedBooking(null);
+        }}
+        booking={selectedBooking}
+      />
+
+      {/* Booking Edit Modal */}
+      <BookingEditModal 
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
           setSelectedBooking(null);
         }}
         booking={selectedBooking}
