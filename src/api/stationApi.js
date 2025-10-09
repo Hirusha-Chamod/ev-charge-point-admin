@@ -20,4 +20,16 @@ export const stationApi = {
 
   // PATCH /api/stations/{id}/deactivate
   deactivateStation: (id) => axiosInstance.patch(`/stations/${id}/deactivate`),
+
+  // GET /api/stations/{id}/available-slots
+  getAvailableSlots: (stationId, { desiredStartTime, desiredEndTime }) =>
+    axiosInstance.get(`/stations/${stationId}/available-slots`, {
+      params: {
+        desiredStartTime: desiredStartTime.toISOString(),
+        desiredEndTime: desiredEndTime.toISOString(),
+      },
+    }),
+
+  // PATCH /api/stations/{id}/activate
+  activateStation: (id) => axiosInstance.patch(`/stations/${id}/activate`),
 };

@@ -1,5 +1,6 @@
 import React, { createContext, useState, useCallback } from "react";
 import { stationApi } from "../api/stationApi";
+import showToast from "../utils/toastNotification";
 
 export const StationContext = createContext();
 
@@ -80,7 +81,6 @@ export const StationProvider = ({ children }) => {
     setError(null);
     try {
       await stationApi.deactivateStation(stationId);
-      // Update the station's status locally
       setStations((prev) =>
         prev.map((station) =>
           station.id === stationId ? { ...station, isActive: false } : station
@@ -89,22 +89,62 @@ export const StationProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       console.error("Failed to deactivate station:", err);
-      setError("Failed to deactivate station.");
+      const errorMessage = err.data || "Failed to deactivate station.";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const activateStation = useCallback(async (stationId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await stationApi.activateStation(stationId);
+      setStations((prev) =>
+        prev.map((station) =>
+          station.id === stationId ? { ...station, isActive: true } : station
+        )
+      );
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to activate station:", err);
+      setError("Failed to activate station.");
       return { success: false, error: err };
     } finally {
       setLoading(false);
     }
   }, []);
 
+  const checkSlotAvailability = useCallback(
+    async (stationId, { desiredStartTime, desiredEndTime }) => {
+      try {
+        const response = await stationApi.getAvailableSlots(stationId, {
+          desiredStartTime,
+          desiredEndTime,
+        });
+        return { success: true, availableSlots: response.data };
+      } catch (err) {
+        console.error("Failed to check slot availability:", err);
+        showToast("error", "Could not check slot availability.");
+        return { success: false, availableSlots: [] };
+      }
+    },
+    []
+  );
+
   const value = {
     stations,
     loading,
     error,
     fetchStations,
-    getStationById,
     createStation,
     updateStation,
     deactivateStation,
+    activateStation,
+    checkSlotAvailability,
+    getStationById,
   };
 
   return (

@@ -7,14 +7,18 @@ import showToast from "../../utils/toastNotification";
 import { Search, Power, PowerOff, Zap, Download } from "lucide-react";
 
 const StationsPage = () => {
-  const { stations, loading, error, fetchStations, deactivateStation } =
-    useStationContext();
+  const {
+    stations,
+    loading,
+    error,
+    fetchStations,
+    deactivateStation,
+    activateStation,
+  } = useStationContext();
 
-  // State for modals
   const [slotsModalStation, setSlotsModalStation] = useState(null);
-  const [deactivationTarget, setDeactivationTarget] = useState(null);
+  const [actionTarget, setActionTarget] = useState(null);
 
-  // State for filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
@@ -23,34 +27,38 @@ const StationsPage = () => {
     fetchStations();
   }, [fetchStations]);
 
-  // Memoized filtering logic
+  useEffect(() => {
+    if (error) {
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error.data || error.message || "An unknown error occurred.";
+      showToast("error", errorMessage);
+    }
+  }, [error]);
+
   const filteredStations = useMemo(() => {
     return stations.filter((station) => {
-      const name = station.name || "";
-      const type = station.type || "";
-      const id = station.id || "";
-
+      const name = station?.name || "";
+      const type = station?.type || "";
+      const id = station?.id || "";
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         !searchTerm ||
         name.toLowerCase().includes(searchLower) ||
         type.toLowerCase().includes(searchLower) ||
         id.toLowerCase().includes(searchLower);
-
       const matchesStatus =
         selectedStatus === "all" ||
         (selectedStatus === "active" && station.isActive) ||
         (selectedStatus === "inactive" && !station.isActive);
-
       const matchesType =
         selectedType === "all" ||
         type.toLowerCase() === selectedType.toLowerCase();
-
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [stations, searchTerm, selectedStatus, selectedType]);
 
-  // Memoized statistics calculation
   const statistics = useMemo(() => {
     const total = stations.length;
     const active = stations.filter((s) => s.isActive).length;
@@ -58,24 +66,29 @@ const StationsPage = () => {
     return { total, active, inactive };
   }, [stations]);
 
-  // Modal handlers
-  const handleViewSlots = (station) => setSlotsModalStation(station);
-  const handleCloseSlotsModal = () => setSlotsModalStation(null);
-  const openDeactivateModal = (station) => setDeactivationTarget(station);
-  const closeDeactivateModal = () => setDeactivationTarget(null);
+  const handleViewSlots = (station) => {
+    setSlotsModalStation(station);
+  };
 
-  const confirmDeactivation = async () => {
-    if (deactivationTarget) {
-      const result = await deactivateStation(deactivationTarget.id);
+  const handleCloseSlotsModal = () => {
+    setSlotsModalStation(null);
+  };
+
+  const openActionModal = (station) => setActionTarget(station);
+  const closeActionModal = () => setActionTarget(null);
+
+  const confirmAction = async () => {
+    if (actionTarget) {
+      const isDeactivating = actionTarget.isActive;
+      const action = isDeactivating ? deactivateStation : activateStation;
+      const actionName = isDeactivating ? "deactivated" : "activated";
+      const result = await action(actionTarget.id);
       if (result.success) {
-        showToast(
-          "success",
-          `Station "${deactivationTarget.name}" deactivated.`
-        );
+        showToast("success", `Station "${actionTarget.name}" ${actionName}.`);
       } else {
-        showToast("error", "Failed to deactivate station.");
+        showToast("error", result.data);
       }
-      closeDeactivateModal();
+      closeActionModal();
     }
   };
 
@@ -87,7 +100,6 @@ const StationsPage = () => {
 
   const exportToCSV = () => {
     if (filteredStations.length === 0) return;
-
     const headers = [
       "ID",
       "Name",
@@ -102,17 +114,16 @@ const StationsPage = () => {
       ...filteredStations.map((s) => {
         const row = [
           s.id,
-          `"${s.name.replace(/"/g, '""')}"`, // Handle commas/quotes in name
+          `"${s.name.replace(/"/g, '""')}"`,
           s.type,
-          s.location?.coordinates[1] || 0,
-          s.location?.coordinates[0] || 0,
+          s.location?.coordinates?.[1] || 0,
+          s.location?.coordinates?.[0] || 0,
           s.isActive ? "Active" : "Inactive",
           s.slots?.length || 0,
         ];
         return row.join(",");
       }),
     ].join("\n");
-
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -134,14 +145,6 @@ const StationsPage = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-red-500 font-semibold">{error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between mb-6">
@@ -158,8 +161,7 @@ const StationsPage = () => {
             onClick={exportToCSV}
             className="inline-flex items-center justify-center px-4 py-2 bg-white text-gray-700 border border-gray-300 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm"
           >
-            <Download className="h-4 w-4 mr-2" />
-            Export
+            <Download className="h-4 w-4 mr-2" /> Export
           </button>
           <Link
             to="/stations/create"
@@ -232,7 +234,7 @@ const StationsPage = () => {
           </button>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -285,11 +287,10 @@ const StationsPage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredStations.map((station) => {
               const availableSlots =
-                station.slots?.filter((slot) => slot.isAvailable).length || 0;
-              const totalSlots = station.slots?.length || 0;
-              const [longitude, latitude] = station.location?.coordinates || [
-                0, 0,
-              ];
+                station?.slots?.filter((slot) => slot.isAvailable).length || 0;
+              const totalSlots = station?.slots?.length || 0;
+              const longitude = station?.location?.coordinates?.[0] || 0;
+              const latitude = station?.location?.coordinates?.[1] || 0;
               return (
                 <tr key={station.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -343,12 +344,21 @@ const StationsPage = () => {
                     >
                       Edit
                     </Link>
-                    <button
-                      onClick={() => openDeactivateModal(station)}
-                      className="text-red-600 hover:text-red-900 font-medium"
-                    >
-                      Deactivate
-                    </button>
+                    {station.isActive ? (
+                      <button
+                        onClick={() => openActionModal(station)}
+                        className="text-red-600 hover:text-red-900 font-medium"
+                      >
+                        Deactivate
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => openActionModal(station)}
+                        className="text-green-600 hover:text-green-900 font-medium"
+                      >
+                        Reactivate
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
@@ -363,12 +373,16 @@ const StationsPage = () => {
         station={slotsModalStation}
       />
       <ConfirmationModal
-        isOpen={!!deactivationTarget}
-        onClose={closeDeactivateModal}
-        onConfirm={confirmDeactivation}
-        title="Deactivate Station"
-        message={`Are you sure you want to deactivate "${deactivationTarget?.name}"? This will mark the station as inactive.`}
-        confirmText="Deactivate"
+        isOpen={!!actionTarget}
+        onClose={closeActionModal}
+        onConfirm={confirmAction}
+        title={`${
+          actionTarget?.isActive ? "Deactivate" : "Reactivate"
+        } Station`}
+        message={`Are you sure you want to ${
+          actionTarget?.isActive ? "deactivate" : "reactivate"
+        } "${actionTarget?.name}"?`}
+        confirmText={actionTarget?.isActive ? "Deactivate" : "Reactivate"}
         isLoading={loading}
       />
     </div>
