@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Bell, LogOut, Menu, X } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, LogOut, Menu, X } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 
 const Navbar = ({ onMenuToggle, isMobileMenuOpen }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-
+  console.log("Navbar render - user:", user);
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -25,7 +25,11 @@ const Navbar = ({ onMenuToggle, isMobileMenuOpen }) => {
               className="lg:hidden p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200"
               aria-label="Toggle menu"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
 
             {/* Breadcrumb */}
@@ -40,7 +44,7 @@ const Navbar = ({ onMenuToggle, isMobileMenuOpen }) => {
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Notifications */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200 relative"
               >
@@ -52,26 +56,38 @@ const Navbar = ({ onMenuToggle, isMobileMenuOpen }) => {
               {/* Notification Dropdown */}
               {showNotifications && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-10" 
+                  <div
+                    className="fixed inset-0 z-10"
                     onClick={() => setShowNotifications(false)}
                   ></div>
                   <div className="absolute right-0 mt-2 w-80 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 z-20 overflow-hidden">
                     <div className="p-4 border-b border-gray-700">
-                      <h3 className="text-sm font-semibold text-white">Notifications</h3>
+                      <h3 className="text-sm font-semibold text-white">
+                        Notifications
+                      </h3>
                     </div>
                     <div className="max-h-96 overflow-y-auto">
                       <div className="p-4 hover:bg-gray-700/50 cursor-pointer transition-colors border-b border-gray-700/50">
-                        <p className="text-sm text-white font-medium">New booking received</p>
-                        <p className="text-xs text-gray-400 mt-1">5 minutes ago</p>
+                        <p className="text-sm text-white font-medium">
+                          New booking received
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          5 minutes ago
+                        </p>
                       </div>
                       <div className="p-4 hover:bg-gray-700/50 cursor-pointer transition-colors border-b border-gray-700/50">
-                        <p className="text-sm text-white font-medium">Station offline alert</p>
+                        <p className="text-sm text-white font-medium">
+                          Station offline alert
+                        </p>
                         <p className="text-xs text-gray-400 mt-1">1 hour ago</p>
                       </div>
                       <div className="p-4 hover:bg-gray-700/50 cursor-pointer transition-colors">
-                        <p className="text-sm text-white font-medium">System update completed</p>
-                        <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
+                        <p className="text-sm text-white font-medium">
+                          System update completed
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          2 hours ago
+                        </p>
                       </div>
                     </div>
                     <div className="p-3 bg-gray-900 border-t border-gray-700">
@@ -89,22 +105,24 @@ const Navbar = ({ onMenuToggle, isMobileMenuOpen }) => {
               {/* User Info - Hidden on small mobile */}
               <div className="hidden md:block text-right">
                 <p className="text-sm font-semibold text-white">
-                  {user?.unique_name || 'Admin User'}
+                  {user?.unique_name || "Admin User"}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {user?.email || 'admin@example.com'}
+                  {user?.email || "admin@example.com"}
                 </p>
               </div>
 
               {/* Avatar */}
               <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 ring-2 ring-gray-800">
                 <span className="text-white text-sm font-bold">
-                  {user?.unique_name ? user.unique_name.charAt(0).toUpperCase() : 'A'}
+                  {user?.unique_name
+                    ? user.unique_name.charAt(0).toUpperCase()
+                    : "A"}
                 </span>
               </div>
 
               {/* Logout Button */}
-              <button 
+              <button
                 onClick={handleLogout}
                 className="p-2 text-gray-300 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-all duration-200"
                 title="Logout"

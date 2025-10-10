@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useStationContext } from "../../hooks/useStationContext";
+import { useAuth } from "../../hooks/useAuth";
 import SlotsModal from "../../components/stations/SlotsModal";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import showToast from "../../utils/toastNotification";
@@ -15,13 +16,14 @@ const StationsPage = () => {
     deactivateStation,
     activateStation,
   } = useStationContext();
-
+  const { user } = useAuth();
   const [slotsModalStation, setSlotsModalStation] = useState(null);
   const [actionTarget, setActionTarget] = useState(null);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+
+  const isBackoffice = user?.role === "BackOffice";
 
   useEffect(() => {
     fetchStations();
@@ -69,7 +71,6 @@ const StationsPage = () => {
   const handleViewSlots = (station) => {
     setSlotsModalStation(station);
   };
-
   const handleCloseSlotsModal = () => {
     setSlotsModalStation(null);
   };
@@ -86,7 +87,7 @@ const StationsPage = () => {
       if (result.success) {
         showToast("success", `Station "${actionTarget.name}" ${actionName}.`);
       } else {
-        showToast("error", result.data);
+        showToast("error", result.error);
       }
       closeActionModal();
     }
@@ -163,12 +164,14 @@ const StationsPage = () => {
           >
             <Download className="h-4 w-4 mr-2" /> Export
           </button>
-          <Link
-            to="/stations/create"
-            className="inline-flex items-center justify-center px-4 py-2 bg-gray-800 text-white font-medium rounded-lg shadow-sm hover:bg-black transition-colors"
-          >
-            Create Station
-          </Link>
+          {isBackoffice && (
+            <Link
+              to="/stations/create"
+              className="inline-flex items-center justify-center px-4 py-2 bg-gray-800 text-white font-medium rounded-lg shadow-sm hover:bg-black transition-colors"
+            >
+              Create Station
+            </Link>
+          )}
         </div>
       </div>
 
@@ -338,26 +341,30 @@ const StationsPage = () => {
                     >
                       View Slots
                     </button>
-                    <Link
-                      to={`/stations/edit/${station.id}`}
-                      className="text-indigo-600 hover:text-indigo-900 mr-4"
-                    >
-                      Edit
-                    </Link>
-                    {station.isActive ? (
-                      <button
-                        onClick={() => openActionModal(station)}
-                        className="text-red-600 hover:text-red-900 font-medium"
-                      >
-                        Deactivate
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => openActionModal(station)}
-                        className="text-green-600 hover:text-green-900 font-medium"
-                      >
-                        Reactivate
-                      </button>
+                    {isBackoffice && (
+                      <>
+                        <Link
+                          to={`/stations/edit/${station.id}`}
+                          className="text-indigo-600 hover:text-indigo-900 mr-4"
+                        >
+                          Edit
+                        </Link>
+                        {station.isActive ? (
+                          <button
+                            onClick={() => openActionModal(station)}
+                            className="text-red-600 hover:text-red-900 font-medium"
+                          >
+                            Deactivate
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => openActionModal(station)}
+                            className="text-green-600 hover:text-green-900 font-medium"
+                          >
+                            Reactivate
+                          </button>
+                        )}
+                      </>
                     )}
                   </td>
                 </tr>

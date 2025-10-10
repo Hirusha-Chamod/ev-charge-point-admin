@@ -164,7 +164,7 @@ export const StationProvider = ({ children }) => {
         // Return the specific error message from the backend
         return {
           success: false,
-          error: err.response?.data || "Failed to update slot.",
+          error: err.data || "Failed to update slot.",
         };
       }
     },

@@ -3,12 +3,15 @@ import { useStationContext } from "../../hooks/useStationContext";
 import { useAuth } from "../../hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import showToast from "../../utils/toastNotification";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 const SlotsModal = ({ isOpen, onClose, station }) => {
   const { checkSlotAvailability, updateSlotAvailability } = useStationContext();
   const { user } = useAuth();
 
   const [updatingSlotId, setUpdatingSlotId] = useState(null);
+  const [actionTargetSlot, setActionTargetSlot] = useState(null);
+  const [currentSlots, setCurrentSlots] = useState([]);
 
   const isOperator =
     user?.role === "StationOperator" || user?.role === "BackOffice";
@@ -46,28 +49,51 @@ const SlotsModal = ({ isOpen, onClose, station }) => {
     setEndTime(getEndTime(newStartTime));
   };
 
-  const handleToggleSlot = async (slot) => {
+  const openSlotActionModal = (slot) => {
     if (!isOperator) return;
+    setActionTargetSlot(slot);
+  };
 
-    setUpdatingSlotId(slot.slotId);
-    const newStatus = !slot.isAvailable; // <-- FIX
+  const closeSlotActionModal = () => {
+    setActionTargetSlot(null);
+  };
+
+  const handleToggleSlot = (slot) => {
+    if (!isOperator) return;
+    openSlotActionModal(slot);
+  };
+
+  const confirmSlotAction = async () => {
+    if (!actionTargetSlot) return;
+
+    setUpdatingSlotId(actionTargetSlot.slotId);
+    const newStatus = !actionTargetSlot.isAvailable;
     const result = await updateSlotAvailability(
       station.id,
-      slot.slotId,
+      actionTargetSlot.slotId,
       newStatus
     );
 
     if (result.success) {
       showToast(
         "success",
-        `Slot ${slot.slotId} is now ${
+        `Slot ${actionTargetSlot.slotId} is now ${
           newStatus ? "Available" : "Out of Service"
         }.`
+      );
+
+      setCurrentSlots((prevSlots) =>
+        prevSlots.map((s) =>
+          s.slotId === actionTargetSlot.slotId
+            ? { ...s, isAvailable: newStatus }
+            : s
+        )
       );
     } else {
       showToast("error", result.error);
     }
     setUpdatingSlotId(null);
+    closeSlotActionModal();
   };
 
   const handleCheckAvailability = async () => {
@@ -94,169 +120,190 @@ const SlotsModal = ({ isOpen, onClose, station }) => {
 
   useEffect(() => {
     if (isOpen) {
+      setCurrentSlots(station?.slots || []);
       const initialStart = getInitialStartTime();
       setStartTime(initialStart);
       setEndTime(getEndTime(initialStart));
     } else {
       setHasChecked(false);
       setAvailableSlots([]);
+      setCurrentSlots([]);
     }
-  }, [isOpen]);
+  }, [isOpen, station]);
 
   if (!isOpen || !station) {
     return null;
   }
 
-  const allSlots = station.slots || [];
+  const allSlots = currentSlots;
   console.log("All Slots:", allSlots);
+
   return (
-    <div
-      className="fixed inset-0 bg-black/50 z-40 flex justify-center items-center"
-      onClick={onClose}
-    >
+    <>
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-lg m-4 p-6 relative"
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 bg-black/50 z-40 flex justify-center items-center"
+        onClick={onClose}
       >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        <div
+          className="bg-white rounded-lg shadow-xl w-full max-w-lg m-4 p-6 relative"
+          onClick={(e) => e.stopPropagation()}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-        <h2 className="text-xl font-bold text-gray-800 mb-1">
-          Slot Status & Availability
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
-          For Station:{" "}
-          <span className="font-medium text-indigo-600">{station.name}</span>
-        </p>
-
-        <div className="border-t border-b border-gray-200 py-4 my-4">
-          <h3 className="text-md font-medium text-gray-800 mb-2">
-            Check Future Availability
-          </h3>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Start Time
-                </label>
-                <input
-                  type="datetime-local"
-                  value={startTime}
-                  onChange={handleStartTimeChange}
-                  className="w-full mt-1 pr-3 py-2 border rounded-lg text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  End Time
-                </label>
-                <input
-                  type="datetime-local"
-                  value={endTime}
-                  min={startTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full mt-1 pr-3 py-2 border rounded-lg text-sm"
-                />
-              </div>
-            </div>
-            <button
-              onClick={handleCheckAvailability}
-              disabled={isLoading}
-              className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                  Checking...
-                </>
-              ) : (
-                <>Check Availability</>
-              )}
-            </button>
-            {hasChecked && !isLoading && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-                {allSlots.map((slot) => {
-                  const IsAvailable = availableSlots.includes(slot.slotId);
-                  return (
-                    <div
-                      key={slot.slotId}
-                      className={`p-2 rounded-lg border text-center ${
-                        IsAvailable
-                          ? "bg-green-50 border-green-200"
-                          : "bg-gray-100 border-gray-200 text-gray-400"
-                      }`}
-                    >
-                      <p className="font-bold text-lg">Slot {slot.slotId}</p>
-                      <p className="text-sm font-semibold">
-                        {IsAvailable ? "Available" : "Booked"}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+          <h2 className="text-xl font-bold text-gray-800 mb-1">
+            Slot Status & Availability
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            For Station:{" "}
+            <span className="font-medium text-indigo-600">{station.name}</span>
+          </p>
 
-        <div>
-          <h3 className="text-md font-medium text-gray-800 mb-2">
-            {isOperator
-              ? "Manual Slot Status (Click to Toggle)"
-              : "Current Slot Status"}
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {allSlots.map((slot) => (
+          <div className="border-t border-b border-gray-200 py-4 my-4">
+            <h3 className="text-md font-medium text-gray-800 mb-2">
+              Check Future Availability
+            </h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Start Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={startTime}
+                    onChange={handleStartTimeChange}
+                    className="w-full mt-1 pr-3 py-2 border rounded-lg text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    End Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={endTime}
+                    min={startTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="w-full mt-1 pr-3 py-2 border rounded-lg text-sm"
+                  />
+                </div>
+              </div>
               <button
-                key={slot.slotId}
-                disabled={!isOperator || updatingSlotId === slot.slotId}
-                onClick={() => handleToggleSlot(slot)}
-                className={`p-4 rounded-lg border text-center relative ${
-                  slot.isAvailable
-                    ? "bg-green-50 border-green-200"
-                    : "bg-red-50 border-red-200"
-                } ${
-                  isOperator
-                    ? "cursor-pointer hover:opacity-75"
-                    : "cursor-not-allowed"
-                } transition-opacity`}
+                onClick={handleCheckAvailability}
+                disabled={isLoading}
+                className="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-50 transition-colors"
               >
-                {updatingSlotId === slot.slotId && (
-                  <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
-                    <Loader2 className="animate-spin text-gray-600" />
-                  </div>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                    Checking...
+                  </>
+                ) : (
+                  <>Check Availability</>
                 )}
-                <p className="font-bold text-lg text-gray-700">
-                  Slot {slot.slotId}
-                </p>
-                <p
-                  className={`text-sm font-semibold ${
-                    slot.isAvailable ? "text-green-700" : "text-red-700"
-                  }`}
-                >
-                  {slot.isAvailable ? "Available" : "Out of Service"}
-                </p>
               </button>
-            ))}
+              {hasChecked && !isLoading && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                  {allSlots.map((slot) => {
+                    const IsAvailable = availableSlots.includes(slot.slotId);
+                    return (
+                      <div
+                        key={slot.slotId}
+                        className={`p-2 rounded-lg border text-center ${
+                          IsAvailable
+                            ? "bg-green-50 border-green-200"
+                            : "bg-gray-100 border-gray-200 text-gray-400"
+                        }`}
+                      >
+                        <p className="font-bold text-lg">Slot {slot.slotId}</p>
+                        <p className="text-sm font-semibold">
+                          {IsAvailable ? "Available" : "Booked"}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-md font-medium text-gray-800 mb-2">
+              {isOperator
+                ? "Manual Slot Status (Click to Toggle)"
+                : "Current Slot Status"}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {allSlots.map((slot) => (
+                <button
+                  key={slot.slotId}
+                  disabled={!isOperator || updatingSlotId === slot.slotId}
+                  onClick={() => handleToggleSlot(slot)}
+                  className={`p-4 rounded-lg border text-center relative ${
+                    slot.isAvailable
+                      ? "bg-green-50 border-green-200"
+                      : "bg-red-50 border-red-200"
+                  } ${
+                    isOperator
+                      ? "cursor-pointer hover:opacity-75"
+                      : "cursor-not-allowed"
+                  } transition-opacity`}
+                >
+                  {updatingSlotId === slot.slotId && (
+                    <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+                      <Loader2 className="animate-spin text-gray-600" />
+                    </div>
+                  )}
+                  <p className="font-bold text-lg text-gray-700">
+                    Slot {slot.slotId}
+                  </p>
+                  <p
+                    className={`text-sm font-semibold ${
+                      slot.isAvailable ? "text-green-700" : "text-red-700"
+                    }`}
+                  >
+                    {slot.isAvailable ? "Available" : "Out of Service"}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <ConfirmationModal
+        isOpen={!!actionTargetSlot}
+        onClose={closeSlotActionModal}
+        onConfirm={confirmSlotAction}
+        title={`Toggle Slot Status`}
+        message={`Are you sure you want to set Slot ${
+          actionTargetSlot?.slotId
+        } to "${
+          actionTargetSlot?.isAvailable ? "Out of Service" : "Available"
+        }"?`}
+        confirmText={
+          actionTargetSlot?.isAvailable ? "Set Out of Service" : "Set Available"
+        }
+        isLoading={updatingSlotId === actionTargetSlot?.slotId}
+      />
+    </>
   );
 };
 
