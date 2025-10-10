@@ -1,43 +1,45 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Zap, 
-  Users
-} from 'lucide-react';
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, Calendar, Zap, Users, UserCheck } from "lucide-react";
 
 const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const location = useLocation();
-  
+
   const menuItems = [
-    { 
-      path: '/dashboard', 
-      name: 'Dashboard', 
+    {
+      path: "/dashboard",
+      name: "Dashboard",
       icon: LayoutDashboard,
-      active: location.pathname === '/dashboard' || location.pathname === '/',
-      available: true
+      active: location.pathname === "/dashboard" || location.pathname === "/",
+      available: true,
     },
-    { 
-      path: '/bookings', 
-      name: 'Bookings', 
+    {
+      path: "/bookings",
+      name: "Bookings",
       icon: Calendar,
-      active: location.pathname.startsWith('/bookings'),
-      available: true
+      active: location.pathname.startsWith("/bookings"),
+      available: true,
     },
-    { 
-      path: '/stations', 
-      name: 'Stations', 
+    {
+      path: "/stations",
+      name: "Stations",
       icon: Zap,
-      active: location.pathname.startsWith('/stations'),
-      available: true
+      active: location.pathname.startsWith("/stations"),
+      available: true,
     },
-    { 
-      path: '/users', 
-      name: 'Users', 
+    {
+      path: "/users",
+      name: "Users",
       icon: Users,
-      active: location.pathname.startsWith('/users'),
-      available: true
+      active: location.pathname.startsWith("/users"),
+      available: true,
+    },
+    {
+      path: "/deactivated-users",
+      name: "Deactivated Users",
+      icon: UserCheck,
+      active: location.pathname.startsWith("/deactivated-users"),
+      available: true,
     },
   ];
 
@@ -51,9 +53,9 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       <div className="p-6 border-b border-gray-800">
         <div className="flex justify-center">
           <div className="w-40 h-40 overflow-hidden">
-            <img 
-              src="/assets/logo.png" 
-              alt="EV Admin Logo" 
+            <img
+              src="/assets/logo.png"
+              alt="EV Admin Logo"
               className="w-full h-full object-contain"
             />
           </div>
@@ -72,11 +74,13 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                     onClick={closeMobileMenu}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
                       item.active
-                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-gray-300 hover:bg-gray-800/70 hover:text-white hover:translate-x-1'
+                        ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                        : "text-gray-300 hover:bg-gray-800/70 hover:text-white hover:translate-x-1"
                     }`}
                   >
-                    <item.icon className={`w-5 h-5 ${item.active ? 'stroke-2' : ''}`} />
+                    <item.icon
+                      className={`w-5 h-5 ${item.active ? "stroke-2" : ""}`}
+                    />
                     <span>{item.name}</span>
                   </Link>
                 </li>
@@ -120,7 +124,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       {/* Mobile Sidebar */}
       <aside
         className={`lg:hidden fixed top-0 left-0 z-40 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 border-r border-gray-800 w-64 h-full shadow-2xl flex-col transform transition-transform duration-300 ease-in-out ${
-          isMobileMenuOpen ? 'translate-x-0 flex' : '-translate-x-full'
+          isMobileMenuOpen ? "translate-x-0 flex" : "-translate-x-full"
         }`}
       >
         <SidebarContent />
