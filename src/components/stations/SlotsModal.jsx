@@ -50,7 +50,7 @@ const SlotsModal = ({ isOpen, onClose, station }) => {
     if (!isOperator) return;
 
     setUpdatingSlotId(slot.slotId);
-    const newStatus = !slot.isAvailable;
+    const newStatus = !slot.isAvailable; // <-- FIX
     const result = await updateSlotAvailability(
       station.id,
       slot.slotId,
@@ -108,7 +108,7 @@ const SlotsModal = ({ isOpen, onClose, station }) => {
   }
 
   const allSlots = station.slots || [];
-
+  console.log("All Slots:", allSlots);
   return (
     <div
       className="fixed inset-0 bg-black/50 z-40 flex justify-center items-center"
@@ -192,19 +192,19 @@ const SlotsModal = ({ isOpen, onClose, station }) => {
             {hasChecked && !isLoading && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
                 {allSlots.map((slot) => {
-                  const isAvailable = availableSlots.includes(slot.slotId);
+                  const IsAvailable = availableSlots.includes(slot.slotId);
                   return (
                     <div
                       key={slot.slotId}
                       className={`p-2 rounded-lg border text-center ${
-                        isAvailable
+                        IsAvailable
                           ? "bg-green-50 border-green-200"
                           : "bg-gray-100 border-gray-200 text-gray-400"
                       }`}
                     >
                       <p className="font-bold text-lg">Slot {slot.slotId}</p>
                       <p className="text-sm font-semibold">
-                        {isAvailable ? "Available" : "Booked"}
+                        {IsAvailable ? "Available" : "Booked"}
                       </p>
                     </div>
                   );

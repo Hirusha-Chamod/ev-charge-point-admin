@@ -135,17 +135,23 @@ export const StationProvider = ({ children }) => {
   );
 
   const updateSlotAvailability = useCallback(
-    async (stationId, slotId, isAvailable) => {
+    async (stationId, slotId, IsAvailable) => {
       // This action sets its own loading state locally, not the main context loading.
       try {
-        await stationApi.updateSlotStatus(stationId, slotId, isAvailable);
-
+        const res = await stationApi.updateSlotStatus(
+          stationId,
+          slotId,
+          IsAvailable
+        );
+        console.log("Slot status updated successfully", res);
         // Update the local state for an instant UI change
         setStations((prevStations) =>
           prevStations.map((station) => {
             if (station.id === stationId) {
               const updatedSlots = station.slots.map((slot) =>
-                slot.slotId === slotId ? { ...slot, isAvailable } : slot
+                slot.slotId === slotId
+                  ? { ...slot, isAvailable: IsAvailable }
+                  : slot
               );
               return { ...station, slots: updatedSlots };
             }

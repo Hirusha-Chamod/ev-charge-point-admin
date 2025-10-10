@@ -49,7 +49,7 @@ const ConfirmationModal = ({
           </div>
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-          {/* --- CONFIRM BUTTON (e.g., "Deactivate") --- */}
+          {/* --- CONFIRM BUTTON  --- */}
           <button
             type="button"
             disabled={isLoading}
