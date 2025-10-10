@@ -21,4 +21,7 @@ export const userApi = {
   
   // Get current user profile
   getProfile: () => axiosInstance.get('/user/profile'),
+
+  //get all deactive users
+  getDeactivatedUsers: () => axiosInstance.get('/EvUser/deactive'),
 };

@@ -1,24 +1,25 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
 import {
   Edit2,
   Trash2,
-  Eye,
   User,
   ChevronLeft,
   ChevronRight,
-  Plus,
 } from "lucide-react";
 import UserEditModal from "./UserEditModal";
+import { useUserContext } from "../../hooks/useUserContext";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 const UserList = ({ filteredUsers, allUsers, loading, error }) => {
+  const { deleteUser, fetchUsers } = useUserContext();
+
   const users = filteredUsers || allUsers;
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // ADDED: State to manage the edit modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const displayedUsers = useMemo(() => {
@@ -31,13 +32,11 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
     ? Math.ceil(users.length / itemsPerPage)
     : 1;
 
-  // ADDED: Handler to open the modal with the correct user data
   const handleOpenEditModal = (user) => {
     setSelectedUser(user);
     setIsEditModalOpen(true);
   };
 
-  // ADDED: Handler to close the modal and clear the selected user
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedUser(null);
@@ -76,7 +75,6 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
@@ -85,21 +83,6 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
           <p className="text-sm text-gray-500 mt-0.5">
             Oversee all registered users
           </p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="text-sm font-medium text-gray-600">
-            <span className="text-gray-900">{users.length}</span>
-            {filteredUsers && filteredUsers.length !== allUsers.length
-              ? ` of ${allUsers.length} users`
-              : " Total Users"}
-          </div>
-          <Link
-            to="/users/create"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Create User
-          </Link>
         </div>
       </div>
 
@@ -111,7 +94,6 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
         </div>
       ) : (
         <>
-          {/* Table Container */}
           <div className="flex-1 overflow-x-auto bg-white">
             <div className="min-w-[800px]">
               <table className="w-full table-fixed">
@@ -125,9 +107,6 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
                     </th>
                     <th className="w-[150px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                       Role
-                    </th>
-                    <th className="w-[120px] px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                      Created At
                     </th>
                     <th className="w-[120px] px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                       Actions
@@ -194,19 +173,7 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="text-xs text-gray-600">
-                              {formatDateOnly(createdAt)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center justify-center gap-0.5">
-                              <button
-                                onClick={() => handleUserAction("view", id)}
-                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-all"
-                                title="View Details"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </button>
                               <button
                                 onClick={() => handleOpenEditModal(user)}
                                 className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-all"
@@ -215,7 +182,7 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button
-                                onClick={() => handleUserAction("delete", id)}
+                                onClick={() => handleOpenDeleteModal(user)}
                                 className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-all"
                                 title="Delete User"
                               >
@@ -249,8 +216,6 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
               </table>
             </div>
           </div>
-
-          {/* Pagination */}
           {!loading && !error && (
             <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
               <p className="text-sm text-gray-700">
@@ -328,6 +293,20 @@ const UserList = ({ filteredUsers, allUsers, loading, error }) => {
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
         user={selectedUser}
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => handleCloseDeleteModal()}
+        confirmText={"Delete User"}
+        message={"Are you sure you want to delete this user?"}
+        title={"Confirm Delete"}
+        isLoading={loading}
+        onConfirm={async () => {
+          await deleteUser(selectedUser?.id);
+          handleCloseDeleteModal();
+          await fetchUsers();
+        }}
       />
     </div>
   );

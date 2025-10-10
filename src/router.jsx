@@ -16,6 +16,7 @@ import { useAuth } from "./hooks/useAuth";
 import { StationProvider } from "./context/StationContext";
 import { UserProvider } from "./context/UserContext";
 import UserPage from "./pages/users/UserPage";
+import DeactivatedUsers from "./pages/deactivatedUsers/DeactivatedUsers"
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -168,6 +169,17 @@ const AppRouter = () => {
                     <ProtectedRoute>
                       <Layout>
                         <UserPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/deactivated-users"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeactivatedUsers />
                       </Layout>
                     </ProtectedRoute>
                   }

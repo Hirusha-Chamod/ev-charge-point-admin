@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Plus, Download, Search, Users } from "lucide-react";
 import { useUserContext } from "../../hooks/useUserContext";
-import UserList from "../../components/users/UserList"; // Adjust path as needed
-import UserModal from "../../components/users/UserModal"; // Adjust path as needed
+import UserList from "../../components/users/UserList";
+import UserModal from "../../components/users/UserModal";
 
 const UserPage = () => {
   const {
@@ -16,21 +16,18 @@ const UserPage = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Filter and search users
   const filteredUsers = useMemo(() => {
-    return (users || []).filter((user: any) => {
+    return (users || []).filter((user) => {
       const id = user.id || user._id || "";
       const name = user.name || "";
       const email = user.email || "";
       const role = user.role || "";
       const createdAt = user.createdAt || user.created_at;
 
-      // Search filter
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         !searchTerm ||
@@ -39,12 +36,10 @@ const UserPage = () => {
         email.toLowerCase().includes(searchLower) ||
         role.toLowerCase().includes(searchLower);
 
-      // Role filter
       const matchesRole =
         selectedRole === "all" ||
         role.toLowerCase() === selectedRole.toLowerCase();
 
-      // Date filter
       const matchesDate =
         !selectedDate ||
         (createdAt &&
@@ -55,41 +50,37 @@ const UserPage = () => {
     });
   }, [users, searchTerm, selectedRole, selectedDate]);
 
-  // Calculate statistics from real data
   const statistics = useMemo(() => {
     const total = (users || []).length;
     const operators = (users || []).filter(
-      (u: any) => (u.role || "").toLowerCase() === "stationoperator"
+      (u) => (u.role || "").toLowerCase() === "stationoperator"
     ).length;
     const backOffice = (users || []).filter(
-      (u: any) => (u.role || "").toLowerCase() === "backoffice"
+      (u) => (u.role || "").toLowerCase() === "backoffice"
     ).length;
     return { total, operators, backOffice };
   }, [users]);
 
-  // Get unique role values from the data
   const availableRoles = useMemo(() => {
     if (!users) return [];
     const roles = [
-      ...new Set(users.map((u: any) => u.role || "").filter(Boolean)),
+      ...new Set(users.map((u) => u.role || "").filter(Boolean)),
     ];
     return roles.sort();
   }, [users]);
 
-  // Clear all filters
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedRole("all");
     setSelectedDate("");
   };
 
-  // Export filtered users to CSV
   const exportToCSV = () => {
     if (filteredUsers.length === 0) return;
     const headers = ["ID", "Name", "Email", "Role", "Created At"];
     const csvContent = [
       headers.join(","),
-      ...filteredUsers.map((user: any) => {
+      ...filteredUsers.map((user) => {
         const id = user.id || user._id || "";
         const name = `"${user.name || ""}"`; // Handle commas in names
         const email = user.email || "";
@@ -113,7 +104,6 @@ const UserPage = () => {
   return (
     <div className="h-full w-full overflow-x-hidden">
       <div className="p-4 lg:p-6 xl:p-8 space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Users</h1>
@@ -145,7 +135,6 @@ const UserPage = () => {
           </div>
         </div>
 
-        {/* Statistics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center space-x-3">
@@ -201,7 +190,6 @@ const UserPage = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
@@ -235,7 +223,7 @@ const UserPage = () => {
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   >
                     <option value="all">All Roles</option>
-                    {availableRoles.map((role: any) => (
+                    {availableRoles.map((role) => (
                       <option key={role} value={role.toLowerCase()}>
                         {role}
                       </option>
@@ -260,7 +248,6 @@ const UserPage = () => {
           </div>
         </div>
 
-        {/* Content */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-w-0 overflow-hidden">
           <UserList
             filteredUsers={filteredUsers}
@@ -271,7 +258,6 @@ const UserPage = () => {
         </div>
       </div>
 
-      {/* User Modal */}
       <UserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );

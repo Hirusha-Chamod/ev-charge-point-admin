@@ -82,6 +82,23 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const getDeactivatedUsers = async () => {
+    setUsersLoading(true);
+    setUsersError(null);
+    try {
+      const response = await userApi.getDeactivatedUsers();
+      setUsers(response.data);
+    } catch (err) {
+      setUsers([]);
+      console.error("Failed to fetch deactivated users:", err);
+      setUsersError(
+        "Could not fetch deactivated users. Please try again later."
+      );
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
   const value = {
     users,
     usersLoading,
@@ -90,6 +107,7 @@ export const UserProvider = ({ children }) => {
     createUser,
     updateUser,
     deleteUser,
+    getDeactivatedUsers,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
