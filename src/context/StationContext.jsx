@@ -134,6 +134,37 @@ export const StationProvider = ({ children }) => {
     []
   );
 
+  const updateSlotAvailability = useCallback(
+    async (stationId, slotId, isAvailable) => {
+      // This action sets its own loading state locally, not the main context loading.
+      try {
+        await stationApi.updateSlotStatus(stationId, slotId, isAvailable);
+
+        // Update the local state for an instant UI change
+        setStations((prevStations) =>
+          prevStations.map((station) => {
+            if (station.id === stationId) {
+              const updatedSlots = station.slots.map((slot) =>
+                slot.slotId === slotId ? { ...slot, isAvailable } : slot
+              );
+              return { ...station, slots: updatedSlots };
+            }
+            return station;
+          })
+        );
+        return { success: true };
+      } catch (err) {
+        console.error("Failed to update slot status:", err);
+        // Return the specific error message from the backend
+        return {
+          success: false,
+          error: err.response?.data || "Failed to update slot.",
+        };
+      }
+    },
+    []
+  );
+
   const value = {
     stations,
     loading,
@@ -145,6 +176,7 @@ export const StationProvider = ({ children }) => {
     activateStation,
     checkSlotAvailability,
     getStationById,
+    updateSlotAvailability,
   };
 
   return (

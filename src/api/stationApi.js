@@ -32,4 +32,10 @@ export const stationApi = {
 
   // PATCH /api/stations/{id}/activate
   activateStation: (id) => axiosInstance.patch(`/stations/${id}/activate`),
+
+  // PATCH /api/stations/{stationId}/slots/{slotId}
+  updateSlotStatus: (stationId, slotId, isAvailable) =>
+    axiosInstance.patch(`/stations/${stationId}/slots/${slotId}`, {
+      isAvailable,
+    }),
 };
