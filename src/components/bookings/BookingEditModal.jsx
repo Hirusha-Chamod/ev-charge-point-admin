@@ -8,9 +8,9 @@ import { useBookingContext } from '../../context/BookingContext';
 const STATUS_OPTIONS = [
   { value: 'Pending', label: 'Pending', color: 'bg-amber-50 text-amber-700 border-amber-200' },
   { value: 'Approved', label: 'Approved', color: 'bg-teal-50 text-teal-700 border-teal-200' },
-  { value: 'Active', label: 'Active', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  { value: 'Cancelled', label: 'Cancelled', color: 'bg-red-50 text-red-700 border-red-200' },
   { value: 'Completed', label: 'Completed', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  { value: 'Rejected', label: 'Rejected', color: 'bg-red-50 text-red-700 border-red-200' },
+  { value: 'Arrived', label: 'Arrived', color: 'bg-green-50 text-green-700 border-green-200' },
 ];
 
 const BookingEditModal = ({ isOpen, onClose, booking }) => {
@@ -146,11 +146,20 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
     e.preventDefault();
     setLoading(true);
     try {
+      // Parse booking date
+      const [year, month, day] = formData.bookingDate.split('-').map(Number);
+      const [startHours, startMinutes] = formData.startTime.split(':').map(Number);
+      const [endHours, endMinutes] = formData.endTime.split(':').map(Number);
+
+      // Construct DateTime in UTC to avoid timezone issues
+      const startDateTime = new Date(Date.UTC(year, month - 1, day, startHours, startMinutes));
+      const endDateTime = new Date(Date.UTC(year, month - 1, day, endHours, endMinutes));
+
       // Prepare payload for booking update
-      const payload = {
+      const updateDto = {
         bookingDate: formData.bookingDate,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
         stationId: formData.stationId,
         slotId: formData.slotId,
         status: formData.status
@@ -158,7 +167,7 @@ const BookingEditModal = ({ isOpen, onClose, booking }) => {
 
       // Call API to update booking
       const bookingId = booking.id || booking._id;
-      await bookingApi.updateBooking(bookingId, payload);
+      await bookingApi.updateBooking(bookingId, updateDto);
 
       showToast('success', 'Booking updated successfully!');
       await fetchBookings();
